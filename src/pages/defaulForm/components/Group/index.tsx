@@ -22,7 +22,7 @@ const handleRemoveQuestion = (expression: string, nodeToRemove: string) => {
     "g"
   );
 
-  let sanitized = expression.replace(regex, (match, p1, p2) => {
+  let sanitized = expression.replace(regex, (_, p1, p2) => {
     if (p1 && p2) {
       return p2;
     } else {

@@ -104,7 +104,7 @@ const SelectComponent = ({
 
     console.log({ fields });
 
-    fields.forEach((e, i) => {
+    fields.forEach((_, i) => {
       if (i === index) {
         update(i, {
           ...data,
