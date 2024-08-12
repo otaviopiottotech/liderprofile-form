@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { answersProps, dimensionModel } from "../quiz/quiz.interface";
 import QuizSelect from "./components/select";
 import QuizMultiSelect from "./components/multiSelect";
+import { NavLink } from "react-router-dom";
 
 interface quizInputs {
   questions: {
@@ -102,6 +103,18 @@ const Ques = () => {
           })}
 
         <div className="buttons-section">
+          <NavLink
+            style={{
+              textDecoration: "none",
+              color: "black",
+              padding: "10px 12px",
+              display: "block",
+              fontFamily: "'Poppins', sans-serif",
+            }}
+            to={"/"}
+          >
+            Voltar
+          </NavLink>
           <button>Enviar</button>
         </div>
       </form>
