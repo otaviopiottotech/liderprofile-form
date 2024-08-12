@@ -1,10 +1,13 @@
 import { MdCheckBox, MdLibraryAddCheck } from "react-icons/md";
 import { ElementsSelectionContainer } from "./styles";
 import { DragEvent } from "react";
+import { formGroupProps } from "../../../defaulForm/components/Group";
+import { getRandomColor } from "../../../../utils/randomColor";
+import { questionsType } from "../../quiz.interface";
 
 type elementTypeOptions = "multi_select";
 
-const elementsOptions = [
+export const elementsOptions = [
   {
     title: "Mútipla escolha",
     icon: <MdLibraryAddCheck />,
@@ -17,7 +20,31 @@ const elementsOptions = [
   },
 ];
 
-const ElementsSelection = () => {
+const ElementsSelection = ({ fieldsArray, formMethods }: formGroupProps) => {
+  const { setValue, watch } = formMethods;
+  const { fields, append } = fieldsArray;
+
+  const handleAddNewQuestion = (type: questionsType) => {
+    let calculationString = watch("calc");
+
+    const code = `P${fields.length + 1}`;
+    const identifyer = window.crypto.randomUUID();
+
+    append({
+      color: getRandomColor(),
+      code,
+      identifyer,
+      type,
+    });
+
+    if (!calculationString) {
+      calculationString = code;
+    } else {
+      calculationString = `${calculationString}+${code}`;
+    }
+    setValue("calc", calculationString);
+  };
+
   const handleDragData = (
     event: DragEvent<HTMLButtonElement>,
     type: elementTypeOptions
@@ -39,6 +66,7 @@ const ElementsSelection = () => {
             <button
               type="button"
               draggable
+              onClick={() => handleAddNewQuestion(e.type as elementTypeOptions)}
               onDragStart={(event) =>
                 handleDragData(event, e.type as elementTypeOptions)
               }

@@ -2,7 +2,9 @@ import Input from "../../../../components/input";
 import { sideHeaderProps } from "../sidebar";
 import { GeneralConfigurationContainer } from "./styles";
 
-const QuizGenerealConfiguration = ({ formMethods }: sideHeaderProps) => {
+const QuizGenerealConfiguration = ({
+  formMethods,
+}: Omit<sideHeaderProps, "fieldsArray">) => {
   const { setValue, register, watch } = formMethods;
 
   const handleChangeInput = (value: string) => {

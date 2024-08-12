@@ -30,6 +30,11 @@ export const ElementsSelectionContainer = styled.section`
       border-radius: 12px;
       gap: 8px;
       color: ${({ theme }) => theme.colors.brand.white};
+      transition: 300ms;
+
+      &:hover {
+        background-color: ${({ theme }) => theme.colors.grayscale.gray_80};
+      }
 
       svg {
         font-size: 2em;

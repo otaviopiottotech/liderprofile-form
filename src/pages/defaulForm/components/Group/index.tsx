@@ -3,7 +3,7 @@ import {
   UseFormReturn,
   UseFieldArrayReturn,
 } from "react-hook-form";
-import { FormGroupContainer } from "./styles";
+import { EmptyQuizContainer, FormGroupContainer } from "./styles";
 import { DragEvent, cloneElement, useEffect, useMemo } from "react";
 import MultiSelectComponent from "../multiSelect";
 import {
@@ -14,6 +14,7 @@ import {
 import { getRandomColor } from "../../../../utils/randomColor";
 import { extractPatterns } from "../../../../utils/extractPattern";
 import SelectComponent from "../select";
+import { elementsOptions } from "../../../quiz/components/elementsSelection";
 
 const handleRemoveQuestion = (expression: string, nodeToRemove: string) => {
   const regex = new RegExp(
@@ -35,7 +36,20 @@ const handleRemoveQuestion = (expression: string, nodeToRemove: string) => {
   sanitized = sanitized.replace(/^\s*(\+|\-|\*|\/)/, "");
   sanitized = sanitized.replace(/(\+|\-|\*|\/)\s*$/, "");
 
-  return sanitized.trim();
+  const newPattern = extractPatterns(sanitized.trim());
+
+  for (let i = 0; i < newPattern.length; i++) {
+    const nodeToCompare = "P" + (i + 1);
+    const currentNode = newPattern[i];
+
+    if (nodeToCompare !== currentNode) {
+      const nodePosition = Number(currentNode.replace("P", ""));
+      const nodeToReplace = "P" + (nodePosition - 1);
+      sanitized = sanitized.replaceAll(currentNode, nodeToReplace);
+    }
+  }
+
+  return sanitized;
 };
 
 const ElementList = {
@@ -45,7 +59,7 @@ const ElementList = {
 
 const maxValue = 100;
 
-interface formGroupProps {
+export interface formGroupProps {
   formMethods: UseFormReturn<dimensionModel>;
   fieldsArray: UseFieldArrayReturn<dimensionModel, "questions", "id">;
 }
@@ -55,11 +69,24 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
   const { fields, append, remove, update } = fieldsArray;
 
   const handleAddNewQuestion = (type: questionsType) => {
+    let calculationString = watch("calc");
+
+    const code = `P${fields.length + 1}`;
+    const identifyer = window.crypto.randomUUID();
+
     append({
-      code: `P${fields.length + 1}`,
       color: getRandomColor(),
+      code,
+      identifyer,
       type,
     });
+
+    if (!calculationString) {
+      calculationString = code;
+    } else {
+      calculationString = `${calculationString}+${code}`;
+    }
+    setValue("calc", calculationString);
   };
 
   const handleUpdateQuestion = (index: number, data: questionInput) => {
@@ -73,20 +100,7 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
 
     const pattern = extractPatterns(watch("calc"));
 
-    for (let i = 0; i < fieldsLength; i++) {
-      const currentField = fields[i];
-
-      //Verify if the field is already included on the calculation
-      if (!calculationString?.includes?.(currentField?.code)) {
-        if (!calculationString) {
-          calculationString = currentField.code;
-        } else {
-          calculationString = `${calculationString}+${currentField.code}`;
-        }
-      }
-    }
-
-    //Verifyon the calculation string if the fields has some deleted nodes
+    //Verify on the calculation string if the fields has some deleted nodes
     if (fieldsLength !== pattern.length) {
       const fieldsPattern = fields.map((e) => e.code);
 
@@ -99,19 +113,11 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
         //Loop through the removed fields to remove them from the 'calc' field
         for (let index = 0; index < differenceBetween.length; index++) {
           const currentArg = differenceBetween[index];
-          const findCurrentArgNumber = Number(currentArg.replace("P", ""));
-          const newNode = "P" + (findCurrentArgNumber + 1);
-
-          console.log({ currentArg, newNode });
-
-          const findFieldIndex = fields.findIndex((e) => e.code === newNode);
 
           calculationString = handleRemoveQuestion(
             calculationString,
             currentArg
           );
-
-          calculationString = calculationString.replaceAll(newNode, currentArg);
 
           fields.forEach((e, fieldIndex) => {
             update(fieldIndex, {
@@ -119,11 +125,6 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
               code: "P" + (fieldIndex + 1),
             });
           });
-
-          // update(findFieldIndex, {
-          //   ...fields[findFieldIndex],
-          //   code: currentArg,
-          // });
         }
       }
     }
@@ -216,28 +217,63 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
           </div>
         </section>
 
-        <div className="form-questions-container">
-          <ul>
-            {fields.map((e, i) => (
-              <li key={i}>
-                {cloneElement(ElementList[e.type], {
-                  code: "P" + (i + 1),
-                  index: i,
-                  max_to_set: maxToSet,
-                  max_value: e.max_value_set_manually
-                    ? (e?.max_value as number)
-                    : questionsMaxValue,
-                  removeQuestion: () => remove(i),
-                  child_key: `questions.${i}`,
-                  onUpdateQuestion: (data: any) =>
-                    handleUpdateQuestion(i, data),
-                })}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {fields.length ? (
+          <div className="form-questions-container">
+            <ul>
+              {fields.map((e, i) => (
+                <li key={e.identifyer}>
+                  {cloneElement(ElementList[e.type], {
+                    code: "P" + (i + 1),
+                    index: i,
+                    max_to_set: maxToSet,
+                    max_value: e.max_value_set_manually
+                      ? (e?.max_value as number)
+                      : questionsMaxValue,
+                    removeQuestion: () => remove(i),
+                    child_key: `questions.${i}`,
+                    onUpdateQuestion: (data: any) =>
+                      handleUpdateQuestion(i, data),
+                  })}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <EmptyQuiz onSelectNewElement={handleAddNewQuestion} />
+        )}
       </FormProvider>
     </FormGroupContainer>
+  );
+};
+
+interface emptyQuizProps {
+  onSelectNewElement(data: questionsType): void;
+}
+
+const EmptyQuiz = ({ onSelectNewElement }: emptyQuizProps) => {
+  return (
+    <EmptyQuizContainer>
+      <div className="title">
+        <p>
+          Nenhum elemento adicionado, arraste ou selecione um elemento para
+          começar a editar
+        </p>
+      </div>
+
+      <div className="button-list">
+        {elementsOptions.map((e, i) => (
+          <li key={i}>
+            <button
+              type="button"
+              onClick={() => onSelectNewElement(e.type as questionsType)}
+            >
+              {e.icon}
+              <span>{e.title}</span>
+            </button>
+          </li>
+        ))}
+      </div>
+    </EmptyQuizContainer>
   );
 };
 

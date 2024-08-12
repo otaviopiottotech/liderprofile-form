@@ -23,6 +23,7 @@ interface SelectComponentProps extends SelectProps {
   label?: string;
   selectStyle?: selectStyles;
   isLoading?: boolean;
+  placeholder?: string;
 }
 
 export const Select = React.forwardRef(
@@ -33,6 +34,7 @@ export const Select = React.forwardRef(
       selectStyle = "primary",
       label,
       isLoading,
+      placeholder,
       ...props
     }: SelectComponentProps,
     forwardedRef: ForwardedRef<HTMLButtonElement>
@@ -51,7 +53,7 @@ export const Select = React.forwardRef(
                 <AiOutlineLoading className="load-icon" />
               </div>
             )}
-            <SelectValue />
+            <SelectValue placeholder={placeholder} />
             <SelectPrimitive.Icon>
               <FaAngleDown />
             </SelectPrimitive.Icon>

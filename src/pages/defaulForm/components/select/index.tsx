@@ -57,38 +57,65 @@ const SelectComponent = ({
   max_to_set,
 }: Partial<multiSelectProps>) => {
   const [minimize, setMinimize] = useState(false);
+  const [removeElement, setRemoveElement] = useState(false);
 
   const { register, watch, control, getValues, setValue } = useFormContext<{
     [x: string]: multiSelectInput;
   }>();
-
-  useEffect(() => {
-    const { max_value_set_manually } = getValues(child_key as string);
-
-    if (!max_value_set_manually) {
-      setValue(`${child_key}.max_value`, max_value);
-    }
-  }, [max_value, child_key]);
 
   const { fields, append, remove, update } = useFieldArray({
     name: `${child_key}.answers`,
     control,
   });
 
+  const updateAnswerWeight = (weight: number) => {
+    const answersIfWeight = fields.filter((e) => !!e.weight);
+
+    if (answersIfWeight.length) {
+      const currentAnswer = answersIfWeight[0];
+      const answerIndex = fields.findIndex((e) => e.id === currentAnswer.id);
+
+      update(answerIndex, {
+        ...currentAnswer,
+        weight,
+      });
+    }
+  };
+
+  useEffect(() => {
+    const { max_value_set_manually } = getValues(child_key as string);
+
+    if (!max_value_set_manually) {
+      updateAnswerWeight(max_value as number);
+      setValue(`${child_key}.max_value`, max_value);
+    }
+  }, [max_value, child_key]);
+
   const handleAddNewAnswer = () => {
     append({});
   };
 
-  const handleUpdateAnswer = (index: number, value: boolean) => {
+  const handleUpdateAnswer = (
+    index: number,
+    value: boolean,
+    data: answersProps
+  ) => {
+    const answerWeight = watch(`${child_key}.max_value`);
+
+    console.log({ fields });
+
     fields.forEach((e, i) => {
       if (i === index) {
         update(i, {
-          ...e,
+          ...data,
+          weight: value ? answerWeight : undefined,
           correct_answer: value,
         });
       } else {
+        const answerData = getValues(`${child_key}.answers.${i}`);
         update(i, {
-          ...e,
+          ...answerData,
+          weight: undefined,
           correct_answer: false,
         });
       }
@@ -96,6 +123,10 @@ const SelectComponent = ({
   };
 
   const handleUpdateQuestionWeight = (data: multiSelectInput) => {
+    updateAnswerWeight(Number(data.max_value));
+
+    setValue(`${child_key}.max_value`, max_value);
+
     onUpdateQuestion?.({
       ...watch(child_key as string),
       max_value: Number(data.max_value),
@@ -103,9 +134,17 @@ const SelectComponent = ({
     });
   };
 
+  const handleRemoveQuestion = () => {
+    setRemoveElement(true);
+    setTimeout(() => {
+      removeQuestion?.();
+    }, 200);
+  };
+
   return (
     <MultiSelectContainer
       $minimize={minimize}
+      $remove={removeElement}
       $color={watch(`${child_key}.color`)}
     >
       <div className="header">
@@ -140,7 +179,7 @@ const SelectComponent = ({
           <button
             type="button"
             className="remove-button"
-            onClick={removeQuestion}
+            onClick={handleRemoveQuestion}
           >
             <AiOutlineClose />
           </button>
@@ -184,7 +223,7 @@ const SelectComponent = ({
 interface responseProps {
   id: string;
   index: number;
-  onUpdateValue(index: number, value: boolean): void;
+  onUpdateValue(index: number, value: boolean, data: answersProps): void;
   remove(): void;
   child_key: string;
   register: UseFormRegister<any>;
@@ -202,11 +241,12 @@ const ResponseOption = ({
   const correct_answer = watch(`${child_key}.correct_answer`) || false;
 
   const handleMarkAsCorrect = () => {
-    onUpdateValue(index, !correct_answer);
+    onUpdateValue(index, !correct_answer, watch(`${child_key}`));
   };
 
   return (
     <ResponseOptionContainer>
+      <span className="font-weight-span">{watch(`${child_key}.weight`)}</span>
       <Input
         placeholder="Opção"
         register={{ ...register(`${child_key}.title`) }}

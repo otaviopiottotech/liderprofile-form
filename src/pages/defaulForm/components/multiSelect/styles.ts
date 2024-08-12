@@ -1,9 +1,40 @@
-import styled, { css } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 
 interface multiSelectorProps {
   $color: string;
   $minimize: boolean;
+  $remove: boolean;
 }
+
+const createNewAnimation = keyframes`
+
+0%{
+  transform: rotateX(90deg);
+  opacity: 0;
+}
+
+
+100%{
+  transform: rotateX(0deg);
+  opacity: 1;
+}
+
+`;
+
+const removeNewAnimation = keyframes`
+
+0%{
+  transform: scale(1);
+  opacity: 1;
+}
+
+100%{
+  max-height: 0px;
+  margin: -1em 0;
+  transform: scale(0);
+  opacity: 0;
+}
+`;
 
 export const MultiSelectContainer = styled.div<multiSelectorProps>`
   max-height: 300vh;
@@ -13,6 +44,20 @@ export const MultiSelectContainer = styled.div<multiSelectorProps>`
   padding: 8px;
   border-radius: 12px;
   transition: 0.3s;
+  transform-origin: top;
+
+  ${({ $remove, $minimize }) => {
+    if ($remove) {
+      return css`
+        max-height: ${$minimize ? "44px" : "200px"};
+
+        animation: 200ms ${removeNewAnimation} linear forwards;
+      `;
+    }
+    return css`
+      animation: 100ms ${createNewAnimation} linear forwards;
+    `;
+  }}
 
   ${({ $minimize }) => {
     if ($minimize) {
@@ -175,10 +220,18 @@ export const MultiSelectContainer = styled.div<multiSelectorProps>`
 export const ResponseOptionContainer = styled.div`
   display: flex;
   align-items: center;
+  position: relative;
   gap: 1em;
 
   > div {
     flex: 1;
+  }
+
+  .font-weight-span {
+    position: absolute;
+    left: -30px;
+    color: ${({ theme }) => theme.colors.grayscale.gray_50};
+    ${({ theme }) => theme.font.p.extra_small};
   }
 
   .delete-button {

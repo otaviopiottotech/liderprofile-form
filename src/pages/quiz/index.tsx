@@ -15,12 +15,15 @@ const QuizScreen = () => {
   const onSubmit = formMethods.handleSubmit((data) => {
     console.log(data);
 
-    // localStorage.setItem("questionario1", JSON.stringify(data));
+    localStorage.setItem("questionario1", JSON.stringify(data));
   });
 
   return (
     <QuizContainer>
-      <QuizSideBar formMethods={formMethods} />
+      <QuizSideBar
+        formMethods={formMethods}
+        fieldsArray={questionsFieldArray}
+      />
       <section className="quiz-form-content">
         <FormGroup
           formMethods={formMethods}

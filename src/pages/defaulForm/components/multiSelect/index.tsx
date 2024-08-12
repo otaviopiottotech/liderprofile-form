@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Input from "../../../../components/input";
 import { MultiSelectContainer, ResponseOptionContainer } from "./styles";
 import {
@@ -54,26 +54,45 @@ const MultiSelectComponent = ({
   max_to_set,
 }: Partial<multiSelectProps>) => {
   const [minimize, setMinimize] = useState(false);
+  const [removeElement, setRemoveElement] = useState(false);
 
   const { register, watch, control, getValues, setValue } = useFormContext<{
     [x: string]: multiSelectInput;
   }>();
-
-  useEffect(() => {
-    const { max_value_set_manually } = getValues(child_key as string);
-
-    if (!max_value_set_manually) {
-      setValue(`${child_key}.max_value`, max_value);
-    }
-  }, [max_value, child_key]);
 
   const { fields, append, remove, update } = useFieldArray({
     name: `${child_key}.answers`,
     control,
   });
 
+  const updateAnswerWeight = () => {
+    const answersIfWeight = fields.filter((e) => e.correct_answer);
+
+    if (answersIfWeight.length) {
+      for (let i = 0; i < answersIfWeight.length; i++) {
+        const currentAnswer = answersIfWeight[i];
+        const answerIndex = fields.findIndex((e) => e.id === currentAnswer.id);
+
+        update(answerIndex, {
+          ...currentAnswer,
+          weight: Number(max_value) / answersIfWeight.length,
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    const { max_value_set_manually } = getValues(child_key as string);
+
+    if (!max_value_set_manually) {
+      updateAnswerWeight();
+      setValue(`${child_key}.max_value`, max_value);
+    }
+  }, [max_value, child_key]);
+
   const handleAddNewAnswer = () => {
     append({});
+    updateAnswerWeight();
   };
 
   const handleUpdateAnswer = (index: number, data: answersProps) => {
@@ -81,6 +100,8 @@ const MultiSelectComponent = ({
   };
 
   const handleUpdateQuestionWeight = (data: multiSelectInput) => {
+    updateAnswerWeight();
+
     onUpdateQuestion?.({
       ...watch(child_key as string),
       max_value: Number(data.max_value),
@@ -88,9 +109,28 @@ const MultiSelectComponent = ({
     });
   };
 
+  const handleRemoveQuestion = () => {
+    setRemoveElement(true);
+
+    setTimeout(() => {
+      removeQuestion?.();
+      updateAnswerWeight();
+    }, 300);
+  };
+
+  const questionsMaxValue = useMemo(() => {
+    const answersIfWeight = fields.filter((e) => e.correct_answer) || 1;
+
+    let divideBy = answersIfWeight.length;
+    let calcMaxValue = max_value as number;
+
+    return Math.trunc(calcMaxValue / divideBy);
+  }, [fields]);
+
   return (
     <MultiSelectContainer
       $minimize={minimize}
+      $remove={removeElement}
       $color={watch(`${child_key}.color`)}
     >
       <div className="header">
@@ -123,7 +163,7 @@ const MultiSelectComponent = ({
           <button
             type="button"
             className="remove-button"
-            onClick={removeQuestion}
+            onClick={handleRemoveQuestion}
           >
             <AiOutlineClose />
           </button>
@@ -147,6 +187,7 @@ const MultiSelectComponent = ({
                 child_key={`${child_key}.answers.${i}`}
                 remove={() => remove(i)}
                 onUpdateValue={handleUpdateAnswer}
+                value={questionsMaxValue}
               />
             </li>
           ))}
@@ -172,6 +213,7 @@ interface responseProps {
   child_key: string;
   register: UseFormRegister<any>;
   watch: UseFormWatch<any>;
+  value: number;
 }
 
 const ResponseOption = ({
@@ -181,6 +223,7 @@ const ResponseOption = ({
   register,
   remove,
   child_key,
+  value,
 }: responseProps) => {
   const correct_answer = watch(`${child_key}.correct_answer`) || false;
 
@@ -188,11 +231,23 @@ const ResponseOption = ({
     onUpdateValue(index, {
       ...watch(child_key),
       correct_answer: !watch(`${child_key}.correct_answer`),
+      weight: !watch(`${child_key}.correct_answer`) ? value : undefined,
     });
   };
 
+  useEffect(() => {
+    if (value && correct_answer) {
+      onUpdateValue(index, {
+        ...watch(child_key),
+        weight: value,
+      });
+    }
+  }, [value]);
+
   return (
     <ResponseOptionContainer>
+      <span className="font-weight-span"> {watch(`${child_key}.weight`)}</span>
+
       <Input
         placeholder="Opção"
         register={{ ...register(`${child_key}.title`) }}

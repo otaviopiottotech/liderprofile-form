@@ -59,7 +59,12 @@ export const FormGroupContainer = styled.section`
     ul {
       display: flex;
       flex-direction: column;
-      gap: 1em;
+
+      li + li {
+        & > div {
+          margin-top: 1em;
+        }
+      }
     }
   }
   .add-new-question {
@@ -68,5 +73,60 @@ export const FormGroupContainer = styled.section`
     text-align: center;
     border: 1px solid gray;
     margin-top: 10px;
+  }
+`;
+
+export const EmptyQuizContainer = styled.section`
+  height: 80vh;
+
+  .title {
+    width: 100%;
+    padding: 2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    p {
+      max-width: 400px;
+      text-align: center;
+      color: ${({ theme }) => theme.colors.grayscale.gray_60};
+      ${({ theme }) => theme.font.p.small};
+    }
+  }
+
+  .button-list {
+    display: flex;
+    padding: 0 2em;
+    gap: 1em;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    li {
+      button {
+        background-color: ${({ theme }) => theme.colors.brand.white};
+        padding: 1em;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid ${({ theme }) => theme.colors.grayscale.gray_10};
+        border-radius: 12px;
+        gap: 8px;
+        color: ${({ theme }) => theme.colors.grayscale.gray_70};
+        transition: 300ms;
+
+        &:hover {
+          scale: 1.08;
+        }
+
+        svg {
+          font-size: 2em;
+        }
+
+        > span {
+          ${({ theme }) => theme.font.p.small};
+        }
+      }
+    }
   }
 `;

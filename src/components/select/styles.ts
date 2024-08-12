@@ -30,8 +30,8 @@ const loading = keyframes`
 
 export const SelectContainer = styled.div`
   .select-label {
-    ${({ theme }) => theme.font.p.small};
-    color: ${({ theme }) => theme.colors.grayscale.gray_70};
+    color: ${({ theme }) => theme.colors.grayscale.gray_80};
+    ${({ theme }) => theme.font.p.normal_bold};
     margin-bottom: 0.2em;
     display: block;
   }
@@ -42,7 +42,8 @@ export const SelectRoot = styled(SelectPrimitive.Root)``;
 const primary = css`
   ${({ theme }) => {
     return css`
-      background-color: ${theme.colors.grayscale.gray_10};
+      background-color: transparent;
+      border: 1px solid ${theme.colors.grayscale.gray_10};
       color: ${theme.colors.grayscale.gray_90};
     `;
   }}
@@ -65,7 +66,7 @@ const styles = {
 export const SelectTrigger = styled(SelectPrimitive.Trigger)<selectStyleProps>`
   width: 100%;
   padding: 0.8em;
-  ${({ theme }) => theme.font.p.normal};
+  ${({ theme }) => theme.font.p.small};
   border-radius: 8px;
   display: flex;
   justify-content: space-between;
@@ -85,6 +86,7 @@ export const SelectTrigger = styled(SelectPrimitive.Trigger)<selectStyleProps>`
     right: 0;
     bottom: 0;
     left: 0;
+
     .load-icon {
       width: 20px;
       color: ${({ theme }) => theme.colors.brand.white};
@@ -109,7 +111,7 @@ export const SelectViewport = styled(SelectPrimitive.Viewport)``;
 
 export const SelectItemContainer = styled(SelectPrimitive.Item)`
   padding: 0.8em;
-  ${({ theme }) => theme.font.p.normal};
+  ${({ theme }) => theme.font.p.small};
   color: ${({ theme }) => theme.colors.grayscale.gray_70};
   cursor: pointer;
   transition: 0.3s;

@@ -2,9 +2,18 @@ import { useMemo } from "react";
 import { QuestionarioContainer } from "./styles";
 import { useForm } from "react-hook-form";
 import { answersProps, dimensionModel } from "../quiz/quiz.interface";
+import QuizSelect from "./components/select";
+import QuizMultiSelect from "./components/multiSelect";
+
+interface quizInputs {
+  questions: {
+    code: string;
+    answers: answersProps[];
+  }[];
+}
 
 const Ques = () => {
-  const { register, handleSubmit } = useForm();
+  const { handleSubmit, setValue } = useForm<quizInputs>();
 
   const foudQ = useMemo<dimensionModel>(() => {
     const q = localStorage.getItem("questionario1");
@@ -16,50 +25,44 @@ const Ques = () => {
   }, []);
 
   const onSubmit = handleSubmit((data) => {
-    console.log(data, foudQ);
-
-    const expectedAnswer = foudQ.questions
-      .map((e) =>
-        Object.assign(
-          {},
-          ...(e.answers as answersProps[]).map((a) => ({ ...e, ...a }))
-        )
-      )
-      .filter((f) => f.correct_answer);
-
-    console.log({ expectedAnswer });
-
-    let acertos: any[] = [];
-
-    for (const keys in data) {
-      const achaAcerto = expectedAnswer.filter((e) => e.title === data[keys]);
-
-      if (achaAcerto.length) {
-        acertos = [...acertos, achaAcerto[0]];
-      }
-    }
+    const grade = data.questions.map((e) => {
+      return {
+        code: e.code,
+        grade: e.answers.reduce((a, b) => {
+          const value = b.correct_answer ? Number(b.weight) : 0;
+          return a + value;
+        }, 0),
+      };
+    });
 
     let finalCalc = foudQ.calc;
 
     for (let i = 0; i < foudQ.questions.length; i++) {
       const currentQ = foudQ.questions[i];
 
-      const acertoValue = acertos.filter((e) => e.code === currentQ.code);
+      const acertoValue = grade.filter((e) => e.code === currentQ.code);
 
       if (acertoValue.length) {
         finalCalc = finalCalc.replaceAll(
           acertoValue[0].code,
-          acertoValue[0].max_value
+          acertoValue[0].grade + ""
         );
       } else {
         finalCalc = finalCalc.replaceAll(currentQ.code, "0");
       }
     }
 
-    console.log(finalCalc);
-
     window.alert(`Sua Nota: ${eval(finalCalc)}`);
   });
+
+  const handleUpdateQuestion = (
+    index: number,
+    code: string,
+    answers: answersProps[]
+  ) => {
+    setValue(`questions.${index}.code`, code);
+    setValue(`questions.${index}.answers`, answers);
+  };
 
   return (
     <QuestionarioContainer>
@@ -69,18 +72,38 @@ const Ques = () => {
 
       <form onSubmit={onSubmit}>
         {foudQ?.questions?.length > 0 &&
-          foudQ?.questions?.map((e, i) => (
-            <div key={e.code} className="question-container">
-              <label htmlFor={e.code}>{e.title}</label>
-              <select id={e.code} {...register(e.code)}>
-                {e.answers?.map((a, ai) => (
-                  <option key={ai}>{a.title}</option>
-                ))}
-              </select>
-            </div>
-          ))}
+          foudQ?.questions?.map((e, i) => {
+            if (e.type === "select") {
+              return (
+                <section key={e.code} className="question-container">
+                  <QuizSelect
+                    title={e.title as string}
+                    answers={e.answers as answersProps[]}
+                    onChangeAnswer={(answers) =>
+                      handleUpdateQuestion(i, e.code, answers)
+                    }
+                  />
+                </section>
+              );
+            }
 
-        <button>Enviar</button>
+            return (
+              <section key={e.code} className="question-container">
+                <QuizMultiSelect
+                  title={e.title as string}
+                  answers={e.answers as answersProps[]}
+                  key={e.code}
+                  onChangeAnswer={(answers) =>
+                    handleUpdateQuestion(i, e.code, answers)
+                  }
+                />
+              </section>
+            );
+          })}
+
+        <div className="buttons-section">
+          <button>Enviar</button>
+        </div>
       </form>
     </QuestionarioContainer>
   );
