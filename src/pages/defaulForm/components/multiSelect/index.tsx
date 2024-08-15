@@ -190,25 +190,26 @@ const MultiSelectComponent = ({
 
       <div className="response">
         <ul>
-          {fields.map((e, i) => (
-            <li key={i}>
-              <ResponseOption
-                id={e.id}
-                index={i}
-                register={register}
-                watch={watch}
-                child_key={`${child_key}.answers.${i}`}
-                remove={() => remove(i)}
-                max_to_set={maxToSet}
-                onUpdateValue={handleUpdateAnswer}
-                max_value={
-                  e.max_value_set_manually
-                    ? (e?.weight as number)
-                    : questionsMaxValue
-                }
-              />
-            </li>
-          ))}
+          {fields.map((e, i) => {
+            const answerMaxValue = e.max_value_set_manually
+              ? (e?.weight as number)
+              : questionsMaxValue;
+
+            return (
+              <li key={e._id + answerMaxValue}>
+                <ResponseOption
+                  index={i}
+                  register={register}
+                  watch={watch}
+                  child_key={`${child_key}.answers.${i}`}
+                  remove={() => remove(i)}
+                  max_to_set={maxToSet}
+                  onUpdateValue={handleUpdateAnswer}
+                  max_value={answerMaxValue}
+                />
+              </li>
+            );
+          })}
         </ul>
 
         <button
@@ -224,7 +225,6 @@ const MultiSelectComponent = ({
 };
 
 interface responseProps {
-  id: string;
   index: number;
   onUpdateValue(index: number, data: answersProps): void;
   remove(): void;
@@ -250,11 +250,13 @@ const ResponseOption = ({
   const handleMarkAsCorrect = () => {
     onUpdateValue(index, {
       ...watch(child_key),
-      correct_answer: !watch(`${child_key}.correct_answer`),
+      correct_answer: !correct_answer,
     });
   };
 
   useEffect(() => {
+    console.log({ max_value });
+
     const max_value_set_manually = watch(`${child_key}.max_value_set_manually`);
 
     if (!max_value_set_manually) {

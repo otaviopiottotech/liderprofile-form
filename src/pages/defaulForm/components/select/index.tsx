@@ -199,25 +199,26 @@ const SelectComponent = ({
 
       <div className="response">
         <ul>
-          {fields.map((e, i) => (
-            <li key={i}>
-              <ResponseOption
-                id={e.id}
-                index={i}
-                watch={watch}
-                register={register}
-                remove={() => remove(i)}
-                max_to_set={maxToSet}
-                onUpdateValue={handleUpdateAnswer}
-                max_value={
-                  e.max_value_set_manually
-                    ? (e?.weight as number)
-                    : questionsMaxValue
-                }
-                child_key={`${child_key}.answers.${i}`}
-              />
-            </li>
-          ))}
+          {fields.map((e, i) => {
+            const answerMaxValue = e.max_value_set_manually
+              ? (e?.weight as number)
+              : questionsMaxValue;
+
+            return (
+              <li key={e._id + answerMaxValue}>
+                <ResponseOption
+                  index={i}
+                  register={register}
+                  watch={watch}
+                  child_key={`${child_key}.answers.${i}`}
+                  remove={() => remove(i)}
+                  max_to_set={maxToSet}
+                  onUpdateValue={handleUpdateAnswer}
+                  max_value={answerMaxValue}
+                />
+              </li>
+            );
+          })}
         </ul>
 
         <button
@@ -233,7 +234,6 @@ const SelectComponent = ({
 };
 
 interface responseProps {
-  id: string;
   index: number;
   onUpdateValue(index: number, data: answersProps): void;
   remove(): void;

@@ -104,8 +104,6 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
   };
 
   useEffect(() => {
-    console.log({ fields });
-
     const fieldsLength = fields.length;
 
     let calculationString = watch("calc");
