@@ -1,7 +1,6 @@
 import {
   PopoverProps,
   Trigger,
-  Anchor,
   PopoverContentProps,
 } from "@radix-ui/react-popover";
 import { ReactElement, useEffect, useState } from "react";
