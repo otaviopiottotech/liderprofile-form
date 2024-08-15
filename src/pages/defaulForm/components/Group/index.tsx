@@ -64,6 +64,16 @@ export interface formGroupProps {
   fieldsArray: UseFieldArrayReturn<dimensionModel, "questions", "id">;
 }
 
+export interface elementsProps {
+  code: string;
+  index: number;
+  max_value: number;
+  onUpdateQuestion(data: any): void;
+  removeQuestion: () => void;
+  max_to_set: number;
+  child_key: string;
+}
+
 const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
   const { setValue, watch } = formMethods;
   const { fields, append, remove, update } = fieldsArray;
@@ -72,12 +82,12 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
     let calculationString = watch("calc");
 
     const code = `P${fields.length + 1}`;
-    const identifyer = window.crypto.randomUUID();
+    const _id = window.crypto.randomUUID();
 
     append({
       color: getRandomColor(),
       code,
-      identifyer,
+      _id,
       type,
     });
 
@@ -94,6 +104,8 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
   };
 
   useEffect(() => {
+    console.log({ fields });
+
     const fieldsLength = fields.length;
 
     let calculationString = watch("calc");
@@ -167,7 +179,7 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
         0
       );
 
-      calcMaxValue = maxValue - maxFieldsValue;
+      calcMaxValue = +(maxFieldsValue - maxValue);
     }
     return calcMaxValue;
   }, [fields]);
@@ -179,8 +191,10 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
       for (let i = 0; i < fields.length; i++) {
         const currentField = fields[i];
 
+        const regex = new RegExp(`\\b${currentField.code}\\b`, "g");
+
         calculationString = calculationString.replaceAll(
-          currentField.code,
+          regex,
           `<span class="calc-item" style="background:${currentField.color}">${currentField.code}</span>`
         );
       }
@@ -221,7 +235,7 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
           <div className="form-questions-container">
             <ul>
               {fields.map((e, i) => (
-                <li key={e.identifyer}>
+                <li key={e._id}>
                   {cloneElement(ElementList[e.type], {
                     code: "P" + (i + 1),
                     index: i,

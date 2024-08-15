@@ -1,9 +1,11 @@
 export interface answersProps {
   title?: string;
   correct_answer?: boolean;
+  max_value_set_manually?: boolean;
   value?: number;
   weight?: number;
-  id: string;
+  _id: string;
+  id?: string;
 }
 
 export type questionsType = "multi_select" | "select";
@@ -18,7 +20,7 @@ export interface questionInput {
   max_value_set_manually?: boolean;
   color: string;
   type: questionsType;
-  identifyer: string;
+  _id: string;
 }
 
 export interface dimensionModel {

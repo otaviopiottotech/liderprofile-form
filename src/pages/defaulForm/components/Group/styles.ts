@@ -37,6 +37,7 @@ export const FormGroupContainer = styled.section`
         display: flex;
         gap: 4px;
         align-items: center;
+        flex-wrap: wrap;
       }
 
       .calc-item {

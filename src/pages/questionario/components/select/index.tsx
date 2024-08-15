@@ -13,8 +13,6 @@ const QuizSelect = ({ answers, onChangeAnswer, title }: quizSelectProps) => {
     onChangeAnswer(findAnswer);
   };
 
-  console.log({ answers });
-
   return (
     <Select
       label={title}

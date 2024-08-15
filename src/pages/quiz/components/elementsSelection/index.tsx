@@ -28,12 +28,12 @@ const ElementsSelection = ({ fieldsArray, formMethods }: formGroupProps) => {
     let calculationString = watch("calc");
 
     const code = `P${fields.length + 1}`;
-    const identifyer = window.crypto.randomUUID();
+    const _id = window.crypto.randomUUID();
 
     append({
       color: getRandomColor(),
       code,
-      identifyer,
+      _id,
       type,
     });
 

@@ -20,10 +20,11 @@ const QuizMultiSelect = ({
 
   const handleSelectAnswer = (value: boolean, item: answersProps) => {
     if (value) {
-      setSelected((old) => [...old, item]);
+      setSelected(() => [...selected, item]);
     } else {
-      setSelected((old) => {
-        return old.filter((e) => e.id !== item.id);
+      setSelected(() => {
+        console.log({ selected });
+        return selected.filter((e) => e._id !== item._id);
       });
     }
   };

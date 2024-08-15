@@ -162,11 +162,15 @@ export const MultiSelectContainer = styled.div<multiSelectorProps>`
     &:hover {
       .edit {
         opacity: 1;
+        max-width: 30px;
+        padding: 6px;
       }
     }
 
     .edit {
+      max-width: 0px;
       opacity: 0;
+      padding: 0;
       transition: 0.3s;
     }
 
@@ -177,7 +181,8 @@ export const MultiSelectContainer = styled.div<multiSelectorProps>`
 
     button {
       padding: 6px;
-      border: solid 1px gray;
+      border: solid 1px ${({ theme }) => theme.colors.grayscale.gray_80};
+      color: ${({ theme }) => theme.colors.brand.black};
       border-radius: 4px;
       display: flex;
       align-items: center;
@@ -223,7 +228,7 @@ export const ResponseOptionContainer = styled.div`
   position: relative;
   gap: 1em;
 
-  > div {
+  > .input-component-container {
     flex: 1;
   }
 
@@ -265,4 +270,11 @@ export const ResponseOptionContainer = styled.div`
       border: solid 2px ${({ theme }) => theme.colors.support.success};
     }
   }
+`;
+
+export const EditValueModalContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.3em;
 `;

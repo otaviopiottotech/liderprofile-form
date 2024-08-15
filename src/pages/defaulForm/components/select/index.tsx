@@ -1,66 +1,38 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Input from "../../../../components/input";
 import {
   UseFormRegister,
   UseFormWatch,
   useFieldArray,
-  useForm,
   useFormContext,
 } from "react-hook-form";
 import {
   AiOutlineClose,
   AiOutlineDelete,
-  AiOutlineEdit,
   AiOutlineRight,
-  AiOutlineSave,
 } from "react-icons/ai";
 import { FaCheck } from "react-icons/fa";
 import {
   MultiSelectContainer,
   ResponseOptionContainer,
 } from "../multiSelect/styles";
-
-interface multiSelectInput {
-  id: string;
-  title: string;
-  grade: number;
-  weight: number;
-  answers: answersProps[];
-  max_value?: number;
-  max_value_set_manually?: boolean;
-}
-
-interface answersProps {
-  id?: string;
-  title?: string;
-  correct_answer?: boolean;
-  value?: number;
-  weight?: number;
-}
-
-interface multiSelectProps {
-  code: string;
-  index: number;
-  max_value: number;
-  onUpdateQuestion(data: any): void;
-  removeQuestion: () => void;
-  max_to_set: number;
-  child_key: string;
-}
+import { answersProps, questionInput } from "../../../quiz/quiz.interface";
+import { ChangeValueButton } from "../multiSelect";
+import { elementsProps } from "../Group";
 
 const SelectComponent = ({
   code,
-  max_value,
+  max_value = 0,
   onUpdateQuestion,
   removeQuestion,
   child_key,
   max_to_set,
-}: Partial<multiSelectProps>) => {
+}: Partial<elementsProps>) => {
   const [minimize, setMinimize] = useState(false);
   const [removeElement, setRemoveElement] = useState(false);
 
   const { register, watch, control, getValues, setValue } = useFormContext<{
-    [x: string]: multiSelectInput;
+    [x: string]: questionInput;
   }>();
 
   const { fields, append, remove, update } = useFieldArray({
@@ -92,40 +64,33 @@ const SelectComponent = ({
   }, [max_value, child_key]);
 
   const handleAddNewAnswer = () => {
-    append({});
+    const _id = window.crypto.randomUUID();
+
+    append({
+      _id,
+    });
   };
 
-  const handleUpdateAnswer = (
-    index: number,
-    value: boolean,
-    data: answersProps
-  ) => {
-    const answerWeight = watch(`${child_key}.max_value`);
-
-    console.log({ fields });
-
+  const handleUpdateAnswer = (index: number, data: answersProps) => {
     fields.forEach((_, i) => {
+      const answerData = getValues(`${child_key}.answers.${i}`);
+
       if (i === index) {
         update(i, {
           ...data,
-          weight: value ? answerWeight : undefined,
-          correct_answer: value,
+          correct_answer: data.correct_answer,
         });
       } else {
-        const answerData = getValues(`${child_key}.answers.${i}`);
         update(i, {
           ...answerData,
-          weight: undefined,
           correct_answer: false,
         });
       }
     });
   };
 
-  const handleUpdateQuestionWeight = (data: multiSelectInput) => {
+  const handleUpdateQuestionWeight = (data: questionInput) => {
     updateAnswerWeight(Number(data.max_value));
-
-    setValue(`${child_key}.max_value`, max_value);
 
     onUpdateQuestion?.({
       ...watch(child_key as string),
@@ -140,6 +105,48 @@ const SelectComponent = ({
       removeQuestion?.();
     }, 200);
   };
+
+  const maxToSet = useMemo(() => {
+    let calcMaxValue = max_value;
+
+    const aFieldHasMaxValue = fields.filter(
+      (filter) => filter.max_value_set_manually
+    );
+
+    if (aFieldHasMaxValue.length) {
+      const maxFieldsValue = aFieldHasMaxValue.reduce(
+        (a, b) => a + Number(b.weight as number),
+        0
+      );
+
+      calcMaxValue = maxFieldsValue - max_value;
+    }
+    return calcMaxValue;
+  }, [fields, max_value]);
+
+  const questionsMaxValue = useMemo(() => {
+    let divideBy = fields.length;
+    let calcMaxValue = max_value;
+
+    const aFieldHasMaxValue = fields.filter(
+      (filter) => filter.max_value_set_manually
+    );
+
+    if (aFieldHasMaxValue.length) {
+      divideBy = fields.length - aFieldHasMaxValue.length;
+
+      const maxFieldsValue = aFieldHasMaxValue.reduce(
+        (a, b) => a + Number(b.weight as number),
+        0
+      );
+
+      calcMaxValue = max_value - maxFieldsValue;
+    }
+
+    const value = calcMaxValue / divideBy;
+
+    return parseFloat(value.toFixed(2));
+  }, [fields, max_value]);
 
   return (
     <MultiSelectContainer
@@ -157,13 +164,12 @@ const SelectComponent = ({
             <h4>Caixa de seleção:</h4>
 
             <h2 className="question-title">{watch(`${child_key}.title`)}</h2>
-            {!minimize && (
-              <ChangeValueButton
-                max_value={max_value as number}
-                max_to_set={max_to_set as number}
-                onUpdateQuestion={handleUpdateQuestionWeight}
-              />
-            )}
+
+            <ChangeValueButton
+              max_value={max_value as number}
+              max_to_set={max_to_set as number}
+              onUpdateQuestion={handleUpdateQuestionWeight}
+            />
           </div>
         </div>
 
@@ -201,7 +207,13 @@ const SelectComponent = ({
                 watch={watch}
                 register={register}
                 remove={() => remove(i)}
+                max_to_set={maxToSet}
                 onUpdateValue={handleUpdateAnswer}
+                max_value={
+                  e.max_value_set_manually
+                    ? (e?.weight as number)
+                    : questionsMaxValue
+                }
                 child_key={`${child_key}.answers.${i}`}
               />
             </li>
@@ -223,11 +235,13 @@ const SelectComponent = ({
 interface responseProps {
   id: string;
   index: number;
-  onUpdateValue(index: number, value: boolean, data: answersProps): void;
+  onUpdateValue(index: number, data: answersProps): void;
   remove(): void;
   child_key: string;
   register: UseFormRegister<any>;
   watch: UseFormWatch<any>;
+  max_value: number;
+  max_to_set: number;
 }
 
 const ResponseOption = ({
@@ -237,19 +251,48 @@ const ResponseOption = ({
   register,
   remove,
   child_key,
+  max_value,
+  max_to_set,
 }: responseProps) => {
   const correct_answer = watch(`${child_key}.correct_answer`) || false;
 
   const handleMarkAsCorrect = () => {
-    onUpdateValue(index, !correct_answer, watch(`${child_key}`));
+    onUpdateValue(index, {
+      ...watch(child_key),
+      correct_answer: !watch(`${child_key}.correct_answer`),
+    });
+  };
+
+  useEffect(() => {
+    const max_value_set_manually = watch(`${child_key}.max_value_set_manually`);
+
+    if (!max_value_set_manually) {
+      onUpdateValue(index, {
+        ...watch(child_key),
+        weight: max_value,
+      });
+    }
+  }, [max_value, child_key]);
+
+  const handleUpdateQuestionWeight = (data: questionInput) => {
+    onUpdateValue?.(index, {
+      ...watch(child_key),
+      weight: Number(data.max_value),
+      max_value_set_manually: true,
+    });
   };
 
   return (
     <ResponseOptionContainer>
-      <span className="font-weight-span">{watch(`${child_key}.weight`)}</span>
       <Input
         placeholder="Opção"
         register={{ ...register(`${child_key}.title`) }}
+      />
+      <ChangeValueButton
+        max_value={max_value as number}
+        max_to_set={max_to_set as number}
+        title={false}
+        onUpdateQuestion={handleUpdateQuestionWeight}
       />
       <button
         type="button"
@@ -263,76 +306,6 @@ const ResponseOption = ({
         <AiOutlineDelete />
       </button>
     </ResponseOptionContainer>
-  );
-};
-
-interface props {
-  onUpdateQuestion(data: any): void;
-  max_value: number;
-  max_to_set: number;
-}
-
-const ChangeValueButton = ({
-  max_value,
-  max_to_set,
-  onUpdateQuestion,
-}: props) => {
-  const [changeValue, setChangeValue] = useState(false);
-
-  const { register, handleSubmit, setValue } = useForm<{ value: number }>();
-
-  useEffect(() => {
-    if (max_value) {
-      setValue("value", max_value);
-    }
-  }, [max_value]);
-
-  const sendNewValue = handleSubmit(({ value }) => {
-    if (!value) {
-      setChangeValue(false);
-      return;
-    }
-
-    if (Number(value) > max_to_set) {
-      window.alert("Naaaah");
-      return;
-    }
-    onUpdateQuestion({ max_value: value });
-    setChangeValue(false);
-  });
-
-  return (
-    <div className="subHeader">
-      <span>Peso da questão:</span>
-      {!changeValue ? (
-        <div>
-          <span>{max_value}</span>
-
-          <button
-            type="button"
-            className="edit"
-            onClick={() => setChangeValue(!changeValue)}
-          >
-            <AiOutlineEdit />
-          </button>
-        </div>
-      ) : (
-        <div>
-          <Input
-            register={{ ...register("value") }}
-            max={max_to_set}
-            type="number"
-          />
-
-          <button type="button" onClick={sendNewValue}>
-            <AiOutlineSave />
-          </button>
-          <button type="button" onClick={() => setChangeValue(!changeValue)}>
-            <AiOutlineClose />
-          </button>
-        </div>
-      )}
-    </div>
   );
 };
 

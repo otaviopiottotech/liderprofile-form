@@ -52,6 +52,7 @@ const Input = forwardRef(
         $required={required}
         $error={error}
         $disabled={props.disabled}
+        className="input-component-container"
       >
         {label && <label className="input-label">{label}</label>}
         <div className="input-container">
