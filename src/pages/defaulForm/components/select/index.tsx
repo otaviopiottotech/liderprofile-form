@@ -209,10 +209,11 @@ const SelectComponent = ({
                 <ResponseOption
                   index={i}
                   register={register}
+                  answers={fields}
                   watch={watch}
                   child_key={`${child_key}.answers.${i}`}
                   remove={() => remove(i)}
-                  max_to_set={maxToSet}
+                  question_value={max_value}
                   onUpdateValue={handleUpdateAnswer}
                   max_value={answerMaxValue}
                 />
@@ -238,10 +239,11 @@ interface responseProps {
   onUpdateValue(index: number, data: answersProps): void;
   remove(): void;
   child_key: string;
+  answers: answersProps[];
   register: UseFormRegister<any>;
   watch: UseFormWatch<any>;
   max_value: number;
-  max_to_set: number;
+  question_value: number;
 }
 
 const ResponseOption = ({
@@ -252,9 +254,29 @@ const ResponseOption = ({
   remove,
   child_key,
   max_value,
-  max_to_set,
+  answers,
+  question_value,
 }: responseProps) => {
   const correct_answer = watch(`${child_key}.correct_answer`) || false;
+
+  const maxToSet = useMemo(() => {
+    let calcMaxValue = question_value;
+    const _id = watch(`${child_key}._id`);
+
+    const aFieldHasMaxValue = answers.filter(
+      (filter) => filter.max_value_set_manually && filter._id !== _id
+    );
+
+    if (aFieldHasMaxValue.length) {
+      const maxFieldsValue = aFieldHasMaxValue.reduce(
+        (a, b) => a + Number(b.weight as number),
+        0
+      );
+
+      calcMaxValue = question_value - maxFieldsValue;
+    }
+    return calcMaxValue;
+  }, [answers, question_value]);
 
   const handleMarkAsCorrect = () => {
     onUpdateValue(index, {
@@ -290,7 +312,7 @@ const ResponseOption = ({
       />
       <ChangeValueButton
         max_value={max_value as number}
-        max_to_set={max_to_set as number}
+        max_to_set={maxToSet}
         title={false}
         onUpdateQuestion={handleUpdateQuestionWeight}
       />

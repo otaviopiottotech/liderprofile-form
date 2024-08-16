@@ -22,7 +22,7 @@ import {
 import { FaCheck } from "react-icons/fa";
 import { answersProps, questionInput } from "../../../quiz/quiz.interface";
 import { PopOverRoot, PopOverTrigger } from "../../../../components/popOver";
-import { elementsProps } from "../Group";
+import { elementsProps, quizValue } from "../Group";
 
 const MultiSelectComponent = ({
   code,
@@ -30,6 +30,7 @@ const MultiSelectComponent = ({
   onUpdateQuestion,
   removeQuestion,
   child_key,
+  questions,
   max_to_set,
 }: Partial<elementsProps>) => {
   const [minimize, setMinimize] = useState(false);
@@ -99,10 +100,13 @@ const MultiSelectComponent = ({
   };
 
   const maxToSet = useMemo(() => {
-    let calcMaxValue = max_value;
+    let calcMaxValue = quizValue;
+    const _id = watch(`${child_key}._id`);
 
-    const aFieldHasMaxValue = fields.filter(
-      (filter) => filter.max_value_set_manually
+    if (!questions?.length) return quizValue;
+
+    const aFieldHasMaxValue = questions?.filter(
+      (filter) => filter.max_value_set_manually && filter._id !== _id
     );
 
     if (aFieldHasMaxValue.length) {
@@ -111,10 +115,10 @@ const MultiSelectComponent = ({
         0
       );
 
-      calcMaxValue = maxFieldsValue - max_value;
+      calcMaxValue = quizValue - maxFieldsValue;
     }
     return calcMaxValue;
-  }, [fields, max_value]);
+  }, [questions, quizValue]);
 
   const questionsMaxValue = useMemo(() => {
     let divideBy = fields.length;
@@ -158,7 +162,7 @@ const MultiSelectComponent = ({
             <h2 className="question-title">{watch(`${child_key}.title`)}</h2>
             <ChangeValueButton
               max_value={max_value as number}
-              max_to_set={max_to_set as number}
+              max_to_set={maxToSet}
               onUpdateQuestion={handleUpdateQuestionWeight}
             />
           </div>
@@ -199,11 +203,12 @@ const MultiSelectComponent = ({
               <li key={e._id + answerMaxValue}>
                 <ResponseOption
                   index={i}
+                  answers={fields}
                   register={register}
                   watch={watch}
                   child_key={`${child_key}.answers.${i}`}
                   remove={() => remove(i)}
-                  max_to_set={maxToSet}
+                  question_value={max_value}
                   onUpdateValue={handleUpdateAnswer}
                   max_value={answerMaxValue}
                 />
@@ -226,13 +231,14 @@ const MultiSelectComponent = ({
 
 interface responseProps {
   index: number;
+  answers: answersProps[];
   onUpdateValue(index: number, data: answersProps): void;
   remove(): void;
   child_key: string;
   register: UseFormRegister<any>;
   watch: UseFormWatch<any>;
   max_value: number;
-  max_to_set: number;
+  question_value: number;
 }
 
 const ResponseOption = ({
@@ -242,21 +248,39 @@ const ResponseOption = ({
   register,
   remove,
   child_key,
+  answers,
   max_value,
-  max_to_set,
+  question_value,
 }: responseProps) => {
   const correct_answer = watch(`${child_key}.correct_answer`) || false;
+
+  const maxToSet = useMemo(() => {
+    let calcMaxValue = question_value;
+    const _id = watch(`${child_key}._id`);
+
+    const aFieldHasMaxValue = answers.filter(
+      (filter) => filter.max_value_set_manually && filter._id !== _id
+    );
+
+    if (aFieldHasMaxValue.length) {
+      const maxFieldsValue = aFieldHasMaxValue.reduce(
+        (a, b) => a + Number(b.weight as number),
+        0
+      );
+
+      calcMaxValue = question_value - maxFieldsValue;
+    }
+    return calcMaxValue;
+  }, [answers, question_value]);
 
   const handleMarkAsCorrect = () => {
     onUpdateValue(index, {
       ...watch(child_key),
-      correct_answer: !correct_answer,
+      correct_answer: !watch(`${child_key}.correct_answer`),
     });
   };
 
   useEffect(() => {
-    console.log({ max_value });
-
     const max_value_set_manually = watch(`${child_key}.max_value_set_manually`);
 
     if (!max_value_set_manually) {
@@ -283,7 +307,7 @@ const ResponseOption = ({
       />
       <ChangeValueButton
         max_value={max_value as number}
-        max_to_set={max_to_set as number}
+        max_to_set={maxToSet}
         title={false}
         onUpdateQuestion={handleUpdateQuestionWeight}
       />

@@ -57,7 +57,7 @@ const ElementList = {
   select: <SelectComponent />,
 };
 
-const maxValue = 100;
+export const quizValue = 100;
 
 export interface formGroupProps {
   formMethods: UseFormReturn<dimensionModel>;
@@ -72,6 +72,7 @@ export interface elementsProps {
   removeQuestion: () => void;
   max_to_set: number;
   child_key: string;
+  questions: questionInput[];
 }
 
 const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
@@ -144,7 +145,7 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
 
   const questionsMaxValue = useMemo(() => {
     let divideBy = fields.length;
-    let calcMaxValue = maxValue;
+    let calcMaxValue = quizValue;
 
     const aFieldHasMaxValue = fields.filter(
       (filter) => filter.max_value_set_manually
@@ -158,28 +159,10 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
         0
       );
 
-      calcMaxValue = maxValue - maxFieldsValue;
+      calcMaxValue = quizValue - maxFieldsValue;
     }
 
     return Math.trunc(calcMaxValue / divideBy);
-  }, [fields]);
-
-  const maxToSet = useMemo(() => {
-    let calcMaxValue = maxValue;
-
-    const aFieldHasMaxValue = fields.filter(
-      (filter) => filter.max_value_set_manually
-    );
-
-    if (aFieldHasMaxValue.length) {
-      const maxFieldsValue = aFieldHasMaxValue.reduce(
-        (a, b) => a + Number(b.max_value as number),
-        0
-      );
-
-      calcMaxValue = +(maxFieldsValue - maxValue);
-    }
-    return calcMaxValue;
   }, [fields]);
 
   const formulaVisualizer = useMemo(() => {
@@ -237,7 +220,6 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
                   {cloneElement(ElementList[e.type], {
                     code: "P" + (i + 1),
                     index: i,
-                    max_to_set: maxToSet,
                     max_value: e.max_value_set_manually
                       ? (e?.max_value as number)
                       : questionsMaxValue,
