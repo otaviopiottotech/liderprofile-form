@@ -31,7 +31,6 @@ const MultiSelectComponent = ({
   removeQuestion,
   child_key,
   questions,
-  max_to_set,
 }: Partial<elementsProps>) => {
   const [minimize, setMinimize] = useState(false);
   const [removeElement, setRemoveElement] = useState(false);

@@ -18,7 +18,7 @@ import {
 } from "../multiSelect/styles";
 import { answersProps, questionInput } from "../../../quiz/quiz.interface";
 import { ChangeValueButton } from "../multiSelect";
-import { elementsProps } from "../Group";
+import { elementsProps, quizValue } from "../Group";
 
 const SelectComponent = ({
   code,
@@ -26,7 +26,7 @@ const SelectComponent = ({
   onUpdateQuestion,
   removeQuestion,
   child_key,
-  max_to_set,
+  questions,
 }: Partial<elementsProps>) => {
   const [minimize, setMinimize] = useState(false);
   const [removeElement, setRemoveElement] = useState(false);
@@ -107,10 +107,13 @@ const SelectComponent = ({
   };
 
   const maxToSet = useMemo(() => {
-    let calcMaxValue = max_value;
+    let calcMaxValue = quizValue;
+    const _id = watch(`${child_key}._id`);
 
-    const aFieldHasMaxValue = fields.filter(
-      (filter) => filter.max_value_set_manually
+    if (!questions?.length) return quizValue;
+
+    const aFieldHasMaxValue = questions?.filter(
+      (filter) => filter.max_value_set_manually && filter._id !== _id
     );
 
     if (aFieldHasMaxValue.length) {
@@ -119,10 +122,10 @@ const SelectComponent = ({
         0
       );
 
-      calcMaxValue = maxFieldsValue - max_value;
+      calcMaxValue = quizValue - maxFieldsValue;
     }
     return calcMaxValue;
-  }, [fields, max_value]);
+  }, [questions, quizValue]);
 
   const questionsMaxValue = useMemo(() => {
     let divideBy = fields.length;
@@ -167,7 +170,7 @@ const SelectComponent = ({
 
             <ChangeValueButton
               max_value={max_value as number}
-              max_to_set={max_to_set as number}
+              max_to_set={maxToSet}
               onUpdateQuestion={handleUpdateQuestionWeight}
             />
           </div>
