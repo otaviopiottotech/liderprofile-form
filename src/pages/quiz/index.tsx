@@ -6,7 +6,11 @@ import FormGroup from "../defaulForm/components/Group";
 import { NavLink } from "react-router-dom";
 
 const QuizScreen = () => {
-  const formMethods = useForm<dimensionModel>();
+  const formMethods = useForm<dimensionModel>({
+    defaultValues: localStorage.getItem("questionario1")
+      ? JSON.parse(localStorage.getItem("questionario1") as string)
+      : {},
+  });
 
   const questionsFieldArray = useFieldArray({
     name: "questions",

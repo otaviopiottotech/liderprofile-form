@@ -313,6 +313,7 @@ const ResponseOption = ({
       <ChangeValueButton
         max_value={max_value as number}
         max_to_set={maxToSet}
+        has_manually_set={watch(`${child_key}.max_value_set_manually`)}
         title={false}
         onUpdateQuestion={handleUpdateQuestionWeight}
       />

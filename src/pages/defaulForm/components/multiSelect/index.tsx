@@ -308,6 +308,7 @@ const ResponseOption = ({
       <ChangeValueButton
         max_value={max_value as number}
         max_to_set={maxToSet}
+        has_manually_set={watch(`${child_key}.max_value_set_manually`)}
         title={false}
         onUpdateQuestion={handleUpdateQuestionWeight}
       />
@@ -330,6 +331,7 @@ interface props {
   onUpdateQuestion(data: any): void;
   max_value: number;
   max_to_set: number;
+  has_manually_set?: boolean;
   title?: boolean;
 }
 
@@ -337,6 +339,7 @@ export const ChangeValueButton = ({
   max_value,
   max_to_set,
   title = true,
+  has_manually_set,
   onUpdateQuestion,
 }: props) => {
   const [open, setOpen] = useState(false);
@@ -367,7 +370,9 @@ export const ChangeValueButton = ({
         {title && <span>Peso da questão:</span>}
 
         <div>
-          <span>{max_value}</span>
+          <span>
+            {max_value} {has_manually_set ? "*" : ""}
+          </span>
           <PopOverRoot
             open={open}
             onOpenChange={() => setOpen(!open)}
