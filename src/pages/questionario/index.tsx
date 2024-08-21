@@ -36,7 +36,6 @@ const Ques = () => {
       };
     });
 
-    console.log({ grade, data });
     let finalCalc = foudQ.calc;
 
     for (let i = 0; i < foudQ.questions.length; i++) {
