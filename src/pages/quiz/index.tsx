@@ -20,16 +20,18 @@ const QuizScreen = () => {
   // });
 
   const formMethods = useForm<teste>({
-    defaultValues: {
-      title: "Novo Questionário",
-      dimentions: [
-        {
-          _id: window.crypto.randomUUID(),
-          title: "Grupo 1",
-          color: getRandomColor(),
+    defaultValues: localStorage.getItem("questionario1")
+      ? JSON.parse(localStorage.getItem("questionario1") as string)
+      : {
+          title: "Novo Questionário",
+          dimentions: [
+            {
+              _id: window.crypto.randomUUID(),
+              title: "Grupo 1",
+              color: getRandomColor(),
+            },
+          ],
         },
-      ],
-    },
   });
 
   const fieldMethod = useFieldArray({

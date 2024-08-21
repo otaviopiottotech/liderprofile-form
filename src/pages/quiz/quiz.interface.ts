@@ -4,6 +4,7 @@ export interface answersProps {
   max_value_set_manually?: boolean;
   value?: number;
   weight?: number;
+  type?: "%" | "nota";
   _id: string;
   id?: string;
 }
