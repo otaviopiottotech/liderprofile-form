@@ -24,7 +24,22 @@ export const QuestionarioContainer = styled.section`
     gap: 3em;
     margin-top: 40px;
 
+    .group-section {
+      h4 {
+        color: ${({ theme }) => theme.colors.grayscale.gray_80};
+        ${({ theme }) => theme.font.h3};
+        font-weight: 600;
+
+        margin-bottom: 1em;
+      }
+
+      & + .group-section {
+        margin-top: 2em;
+      }
+    }
+
     .question-container {
+      margin-top: 1em;
     }
 
     .buttons-section {

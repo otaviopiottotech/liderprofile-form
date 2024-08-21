@@ -1,16 +1,18 @@
 import { UseFieldArrayReturn, UseFormReturn } from "react-hook-form";
 import { QuizSideContainer } from "./styles";
-import { dimensionModel } from "../../quiz.interface";
 import CollapsableMenu from "../collapsableMenu";
 import QuizGenerealConfiguration from "../general";
+import { teste } from "../..";
+import QuizDimentionsConfig from "../dimensions";
 import ElementsSelection from "../elementsSelection";
 
 export interface sideHeaderProps {
-  formMethods: UseFormReturn<dimensionModel>;
-  fieldsArray: UseFieldArrayReturn<dimensionModel, "questions", "id">;
+  formMethods: UseFormReturn<teste>;
+  fieldsArray: UseFieldArrayReturn<teste, "dimentions", "id">;
 }
 
 const QuizSideBar = ({ formMethods, fieldsArray }: sideHeaderProps) => {
+  const { fields } = fieldsArray;
   return (
     <QuizSideContainer>
       <section className="sidebar-header">
@@ -20,6 +22,23 @@ const QuizSideBar = ({ formMethods, fieldsArray }: sideHeaderProps) => {
         title="Configuração Geral"
         content={<QuizGenerealConfiguration formMethods={formMethods} />}
       />
+
+      <fieldset>
+        <legend>Grupos</legend>
+
+        {fields.map((e, i) => (
+          <CollapsableMenu
+            key={e._id}
+            title={formMethods.watch(`dimentions.${i}.title`) + ""}
+            content={
+              <QuizDimentionsConfig
+                formMethods={formMethods}
+                child_key={`dimentions.${i}`}
+              />
+            }
+          />
+        ))}
+      </fieldset>
 
       <ElementsSelection fieldsArray={fieldsArray} formMethods={formMethods} />
     </QuizSideContainer>

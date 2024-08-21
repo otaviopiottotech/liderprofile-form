@@ -7,9 +7,9 @@ const QuizGenerealConfiguration = ({
 }: Omit<sideHeaderProps, "fieldsArray">) => {
   const { setValue, register, watch } = formMethods;
 
-  const handleChangeInput = (value: string) => {
-    setValue("calc", value.toLocaleUpperCase());
-  };
+  // const handleChangeInput = (value: string) => {
+  //   setValue("calc", value.toLocaleUpperCase());
+  // };
 
   return (
     <GeneralConfigurationContainer>
@@ -18,12 +18,12 @@ const QuizGenerealConfiguration = ({
         placeholder="Nome do questionário"
         register={{ ...register("title") }}
       />
-      <Input
+      {/* <Input
         label="Fórmula"
         placeholder="Fórmula"
         value={watch("calc")}
         onChange={({ target: { value } }) => handleChangeInput(value)}
-      />
+      /> */}
     </GeneralConfigurationContainer>
   );
 };

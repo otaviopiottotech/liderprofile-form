@@ -8,7 +8,7 @@ export interface answersProps {
   id?: string;
 }
 
-export type questionsType = "multi_select" | "select";
+export type questionsType = "multi_select" | "select" | "group";
 
 export interface questionInput {
   code: string;
@@ -24,8 +24,10 @@ export interface questionInput {
 }
 
 export interface dimensionModel {
-  title: string;
-  total: number;
-  calc: string;
-  questions: questionInput[];
+  title?: string;
+  total?: number;
+  calc?: string;
+  color: string;
+  _id: string;
+  questions?: questionInput[];
 }

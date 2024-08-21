@@ -1,69 +1,102 @@
 import { useMemo } from "react";
 import { QuestionarioContainer } from "./styles";
 import { useForm } from "react-hook-form";
-import { answersProps, dimensionModel } from "../quiz/quiz.interface";
+import { answersProps, questionInput } from "../quiz/quiz.interface";
 import QuizSelect from "./components/select";
 import QuizMultiSelect from "./components/multiSelect";
 import { NavLink } from "react-router-dom";
+import { teste } from "../quiz";
 
 interface quizInputs {
-  questions: {
-    code: string;
-    answers: answersProps[];
+  dimentions: {
+    calc: string;
+    title: string;
+    questions: {
+      code: string;
+      answers: answersProps[];
+    }[];
   }[];
 }
 
 const Ques = () => {
   const { handleSubmit, setValue } = useForm<quizInputs>();
 
-  const foudQ = useMemo<dimensionModel>(() => {
+  const foudQ = useMemo<teste | undefined>(() => {
     const q = localStorage.getItem("questionario1");
 
     if (q) {
-      return JSON.parse(q);
+      const parseQuestion: teste = JSON.parse(q);
+
+      parseQuestion.dimentions.forEach((e, i) => {
+        setValue(`dimentions.${i}.title`, e.title as string);
+        setValue(`dimentions.${i}.calc`, e.calc as string);
+      });
+
+      return parseQuestion;
     }
     return undefined;
   }, []);
 
   const onSubmit = handleSubmit((data) => {
-    const grade = data.questions.map((e) => {
-      return {
-        code: e.code,
-        grade: e.answers.reduce((a, b) => {
-          const value = b.correct_answer ? Number(b.weight) : 0;
-          return a + value;
-        }, 0),
-      };
-    });
+    let grades = "";
 
-    console.log({ grade, data });
-    let finalCalc = foudQ.calc;
+    console.log(data);
 
-    for (let i = 0; i < foudQ.questions.length; i++) {
-      const currentQ = foudQ.questions[i];
+    for (let dI = 0; dI < data.dimentions.length; dI++) {
+      const currentDimension = data.dimentions[dI];
 
-      const acertoValue = grade.filter((e) => e.code === currentQ.code);
+      const grade = (currentDimension.questions as questionInput[]).map((e) => {
+        return {
+          code: e.code,
+          grade: (e?.answers as answersProps[]).reduce((a, b) => {
+            const value = b.correct_answer ? Number(b.weight) : 0;
+            return a + value;
+          }, 0),
+        };
+      });
 
-      if (acertoValue.length) {
-        finalCalc = finalCalc.replaceAll(
-          acertoValue[0].code,
-          acertoValue[0].grade + ""
-        );
-      } else {
-        finalCalc = finalCalc.replaceAll(currentQ.code, "0");
+      let finalCalc = currentDimension.calc as string;
+
+      for (
+        let i = 0;
+        i < (currentDimension.questions as questionInput[]).length;
+        i++
+      ) {
+        const currentQ = (currentDimension.questions as questionInput[])[i];
+
+        const acertoValue = grade.filter((e) => e.code === currentQ.code);
+
+        if (acertoValue.length) {
+          finalCalc = finalCalc.replaceAll(
+            acertoValue[0].code,
+            acertoValue[0].grade + ""
+          );
+        } else {
+          finalCalc = finalCalc.replaceAll(currentQ.code, "0");
+        }
       }
-    }
 
-    window.alert(`Sua Nota: ${eval(finalCalc)}`);
+      console.log({ currentDimension: currentDimension.title, finalCalc });
+
+      grades =
+        grades +
+        " ;" +
+        `Grupo:${currentDimension.title} e nota: ${eval(finalCalc)}`;
+    }
+    window.alert(grades);
   });
 
   const handleUpdateQuestion = (
     index: number,
+    dimensionIndex: number,
     code: string,
     answers: answersProps[]
   ) => {
-    setValue(`questions.${index}.code`, code);
-    setValue(`questions.${index}.answers`, answers);
+    setValue(`dimentions.${dimensionIndex}.questions.${index}.code`, code);
+    setValue(
+      `dimentions.${dimensionIndex}.questions.${index}.answers`,
+      answers
+    );
   };
 
   return (
@@ -73,32 +106,51 @@ const Ques = () => {
       </div>
 
       <form onSubmit={onSubmit}>
-        {foudQ?.questions?.length > 0 &&
-          foudQ?.questions?.map((e, i) => {
-            if (e.type === "select") {
-              return (
-                <section key={e.code} className="question-container">
-                  <QuizSelect
-                    title={e.title as string}
-                    answers={e.answers as answersProps[]}
-                    onChangeAnswer={(answers) =>
-                      handleUpdateQuestion(i, e.code, answers)
-                    }
-                  />
-                </section>
-              );
-            }
-
+        {foudQ &&
+          foudQ?.dimentions?.length > 0 &&
+          foudQ?.dimentions?.map((dimension, dimensionIndex) => {
             return (
-              <section key={e.code} className="question-container">
-                <QuizMultiSelect
-                  title={e.title as string}
-                  answers={e.answers as answersProps[]}
-                  key={e.code}
-                  onChangeAnswer={(answers) =>
-                    handleUpdateQuestion(i, e.code, answers)
+              <section key={dimensionIndex} className="group-section">
+                <h4>{dimension.title}</h4>
+
+                {dimension.questions?.map((e, i) => {
+                  if (e.type === "select") {
+                    return (
+                      <section key={e.code} className="question-container">
+                        <QuizSelect
+                          title={e.title as string}
+                          answers={e.answers as answersProps[]}
+                          onChangeAnswer={(answers) =>
+                            handleUpdateQuestion(
+                              i,
+                              dimensionIndex,
+                              e.code,
+                              answers
+                            )
+                          }
+                        />
+                      </section>
+                    );
                   }
-                />
+
+                  return (
+                    <section key={e.code} className="question-container">
+                      <QuizMultiSelect
+                        title={e.title as string}
+                        answers={e.answers as answersProps[]}
+                        key={e.code}
+                        onChangeAnswer={(answers) =>
+                          handleUpdateQuestion(
+                            i,
+                            dimensionIndex,
+                            e.code,
+                            answers
+                          )
+                        }
+                      />
+                    </section>
+                  );
+                })}
               </section>
             );
           })}
