@@ -1,12 +1,12 @@
 import styled, { css, keyframes } from "styled-components";
 
-interface multiSelectorProps {
+export interface multiSelectorProps {
   $color: string;
   $minimize: boolean;
   $remove: boolean;
 }
 
-const createNewAnimation = keyframes`
+export const createNewAnimation = keyframes`
 
 0%{
   transform: rotateX(90deg);
@@ -21,7 +21,7 @@ const createNewAnimation = keyframes`
 
 `;
 
-const removeNewAnimation = keyframes`
+export const removeNewAnimation = keyframes`
 
 0%{
   transform: scale(1);

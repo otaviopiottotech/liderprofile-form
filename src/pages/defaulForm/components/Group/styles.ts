@@ -1,24 +1,72 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+import {
+  createNewAnimation,
+  multiSelectorProps,
+  removeNewAnimation,
+} from "../multiSelect/styles";
 
-export const FormGroupContainer = styled.section`
-  max-width: 900px;
-  margin: 0 auto;
+export const FormGroupContainer = styled.section<multiSelectorProps>`
+  width: 100%;
+  max-height: 300vh;
   overflow: hidden;
   background-color: ${({ theme }) => theme.colors.brand.white};
-  border-radius: 16px;
+  border-radius: 4px;
   box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.15);
+  transition: 300ms;
+
+  ${({ $remove, $minimize }) => {
+    if ($remove) {
+      return css`
+        max-height: ${$minimize ? "44px" : "200px"};
+
+        animation: 200ms ${removeNewAnimation} linear forwards;
+      `;
+    }
+    return css`
+      animation: 100ms ${createNewAnimation} linear forwards;
+    `;
+  }}
+
+  ${({ $minimize }) => {
+    if ($minimize) {
+      return css`
+        max-height: 60px;
+
+        .header {
+          .left-side {
+            .title {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            }
+          }
+
+          .minimize-button {
+            rotate: 90deg;
+          }
+        }
+
+        .subHeader {
+          display: none !important;
+        }
+      `;
+    }
+  }}
 
   .section-header {
     padding: 1em;
-    background-color: ${({ theme }) => theme.colors.grayscale.gray_20};
+    background-color: ${({ theme }) => theme.colors.grayscale.gray_10};
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
 
     h4 {
       color: ${({ theme }) => theme.colors.brand.black};
-      ${({ theme }) => theme.font.p.normal};
+      ${({ theme }) => theme.font.p.extra_small};
     }
     h3 {
       color: ${({ theme }) => theme.colors.brand.black};
-      ${({ theme }) => theme.font.p.medium_bold};
+      ${({ theme }) => theme.font.p.normal_bold};
     }
 
     .formula {
@@ -50,10 +98,41 @@ export const FormGroupContainer = styled.section`
         ${({ theme }) => theme.font.p.extra_small};
       }
     }
+
+    .right-side {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 6px;
+      margin-left: auto;
+      transition: 0.2s;
+      background-color: ${({ theme }) => theme.colors.grayscale.gray_05};
+      color: ${({ theme }) => theme.colors.grayscale.gray_50};
+    }
+
+    .minimize-button {
+      &:hover {
+        background-color: ${({ theme }) => theme.colors.brand.blue};
+        color: ${({ theme }) => theme.colors.brand.white};
+      }
+    }
+
+    .remove-button {
+      &:hover {
+        background-color: ${({ theme }) => theme.colors.support.error};
+        color: ${({ theme }) => theme.colors.brand.white};
+      }
+    }
   }
 
   .form-questions-container {
-    height: 80vh;
     padding: 1em;
     overflow-y: auto;
 
@@ -78,8 +157,6 @@ export const FormGroupContainer = styled.section`
 `;
 
 export const EmptyQuizContainer = styled.section`
-  height: 80vh;
-
   .title {
     width: 100%;
     padding: 2em;

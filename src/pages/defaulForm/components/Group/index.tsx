@@ -1,10 +1,6 @@
-import {
-  FormProvider,
-  UseFormReturn,
-  UseFieldArrayReturn,
-} from "react-hook-form";
+import { useFormContext, useFieldArray } from "react-hook-form";
 import { EmptyQuizContainer, FormGroupContainer } from "./styles";
-import { DragEvent, cloneElement, useEffect, useMemo } from "react";
+import { DragEvent, cloneElement, useEffect, useMemo, useState } from "react";
 import MultiSelectComponent from "../multiSelect";
 import {
   dimensionModel,
@@ -15,6 +11,8 @@ import { getRandomColor } from "../../../../utils/randomColor";
 import { extractPatterns } from "../../../../utils/extractPattern";
 import SelectComponent from "../select";
 import { elementsOptions } from "../../../quiz/components/elementsSelection";
+import { AiOutlineClose, AiOutlineRight } from "react-icons/ai";
+import { toast } from "sonner";
 
 const handleRemoveQuestion = (expression: string, nodeToRemove: string) => {
   const regex = new RegExp(
@@ -55,13 +53,14 @@ const handleRemoveQuestion = (expression: string, nodeToRemove: string) => {
 const ElementList = {
   multi_select: <MultiSelectComponent />,
   select: <SelectComponent />,
+  group: <SelectComponent />,
 };
 
 export const quizValue = 100;
 
 export interface formGroupProps {
-  formMethods: UseFormReturn<dimensionModel>;
-  fieldsArray: UseFieldArrayReturn<dimensionModel, "questions", "id">;
+  child_key: string;
+  removeQuestion: () => void;
 }
 
 export interface elementsProps {
@@ -75,12 +74,26 @@ export interface elementsProps {
   questions: questionInput[];
 }
 
-const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
-  const { setValue, watch } = formMethods;
-  const { fields, append, remove, update } = fieldsArray;
+const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
+  const [removeElement, setRemoveElement] = useState(false);
+  const [minimize, setMinimize] = useState(false);
+  const [_a, dimensionIndex] = (child_key as string)?.split(".");
+  const {
+    watch,
+    control,
+    setValue,
+    formState: { errors },
+  } = useFormContext<{
+    [x: string]: dimensionModel;
+  }>();
+
+  const { fields, append, remove, update } = useFieldArray({
+    name: `${child_key}.questions`,
+    control,
+  });
 
   const handleAddNewQuestion = (type: questionsType) => {
-    let calculationString = watch("calc");
+    let calculationString = watch(`${child_key}.calc`);
 
     const code = `P${fields.length + 1}`;
     const _id = window.crypto.randomUUID();
@@ -97,7 +110,7 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
     } else {
       calculationString = `${calculationString}+${code}`;
     }
-    setValue("calc", calculationString);
+    setValue(`${child_key}.calc`, calculationString);
   };
 
   const handleUpdateQuestion = (index: number, data: questionInput) => {
@@ -107,9 +120,9 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
   useEffect(() => {
     const fieldsLength = fields.length;
 
-    let calculationString = watch("calc");
+    let calculationString = watch(`${child_key}.calc`);
 
-    const pattern = extractPatterns(watch("calc"));
+    const pattern = extractPatterns(watch(`${child_key}.calc`) as string);
 
     //Verify on the calculation string if the fields has some deleted nodes
     if (fieldsLength !== pattern.length) {
@@ -126,7 +139,7 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
           const currentArg = differenceBetween[index];
 
           calculationString = handleRemoveQuestion(
-            calculationString,
+            calculationString as string,
             currentArg
           );
 
@@ -140,7 +153,7 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
       }
     }
 
-    setValue("calc", calculationString);
+    setValue(`${child_key}.calc`, calculationString);
   }, [fields]);
 
   const questionsMaxValue = useMemo(() => {
@@ -166,7 +179,7 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
   }, [fields]);
 
   const formulaVisualizer = useMemo(() => {
-    let calculationString = watch("calc");
+    let calculationString = watch(`${child_key}.calc`);
 
     if (calculationString) {
       for (let i = 0; i < fields.length; i++) {
@@ -183,7 +196,7 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
       return calculationString;
     }
     return "";
-  }, [watch("calc")]);
+  }, [watch(`${child_key}.calc`)]);
 
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
     let eventData = event.dataTransfer.getData("new-element");
@@ -196,13 +209,41 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
     if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
   };
 
+  const handleRemoveDimension = () => {
+    setRemoveElement(true);
+
+    setTimeout(() => {
+      removeQuestion?.();
+    }, 300);
+  };
+
+  useEffect(() => {
+    const questionErrors = (errors as any)?.dimentions?.[dimensionIndex] || {};
+
+    if (Object.keys(questionErrors)?.length) {
+      for (const key in questionErrors) {
+        const currentError = questionErrors[key];
+
+        if (currentError?.message) {
+          toast.error(currentError?.message);
+        }
+      }
+    }
+  }, [errors]);
+
   return (
-    <FormGroupContainer onDragOver={onDragOver} onDrop={onDrop}>
-      <FormProvider {...formMethods}>
-        <section className="section-header">
+    <FormGroupContainer
+      $minimize={minimize}
+      $remove={removeElement}
+      $color={watch(`${child_key}.color`)}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    >
+      <section className="section-header">
+        <div className="left-side">
           <div className="group-info">
             <h4>Nome</h4>
-            <h3> {watch("title")}</h3>
+            <h3> {watch(`${child_key}.title`)}</h3>
           </div>
 
           <div className="formula">
@@ -210,13 +251,37 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
 
             <div dangerouslySetInnerHTML={{ __html: formulaVisualizer }} />
           </div>
-        </section>
+        </div>
 
-        {fields.length ? (
-          <div className="form-questions-container">
-            <ul>
-              {fields.map((e, i) => (
-                <li key={e._id}>
+        <div className="right-side">
+          <button
+            type="button"
+            className="minimize-button"
+            onClick={() => setMinimize(!minimize)}
+          >
+            <AiOutlineRight />
+          </button>
+
+          <button
+            type="button"
+            className="remove-button"
+            onClick={handleRemoveDimension}
+          >
+            <AiOutlineClose />
+          </button>
+        </div>
+      </section>
+
+      {fields.length ? (
+        <div className="form-questions-container">
+          <ul>
+            {fields.map((e, i) => {
+              const answerMaxValue = e.max_value_set_manually
+                ? (e?.weight as number)
+                : questionsMaxValue;
+
+              return (
+                <li key={e._id + answerMaxValue}>
                   {cloneElement(ElementList[e.type], {
                     code: "P" + (i + 1),
                     index: i,
@@ -224,18 +289,20 @@ const FormGroup = ({ formMethods, fieldsArray }: formGroupProps) => {
                       ? (e?.max_value as number)
                       : questionsMaxValue,
                     removeQuestion: () => remove(i),
-                    child_key: `questions.${i}`,
+                    child_key: `${child_key}.questions.${i}`,
                     onUpdateQuestion: (data: any) =>
                       handleUpdateQuestion(i, data),
                   })}
                 </li>
-              ))}
-            </ul>
-          </div>
-        ) : (
+              );
+            })}
+          </ul>
+        </div>
+      ) : (
+        <div className="form-questions-container">
           <EmptyQuiz onSelectNewElement={handleAddNewQuestion} />
-        )}
-      </FormProvider>
+        </div>
+      )}
     </FormGroupContainer>
   );
 };
@@ -255,17 +322,19 @@ const EmptyQuiz = ({ onSelectNewElement }: emptyQuizProps) => {
       </div>
 
       <div className="button-list">
-        {elementsOptions.map((e, i) => (
-          <li key={i}>
-            <button
-              type="button"
-              onClick={() => onSelectNewElement(e.type as questionsType)}
-            >
-              {e.icon}
-              <span>{e.title}</span>
-            </button>
-          </li>
-        ))}
+        {elementsOptions
+          .filter((e) => e.type !== "group")
+          .map((e, i) => (
+            <li key={i}>
+              <button
+                type="button"
+                onClick={() => onSelectNewElement(e.type as questionsType)}
+              >
+                {e.icon}
+                <span>{e.title}</span>
+              </button>
+            </li>
+          ))}
       </div>
     </EmptyQuizContainer>
   );

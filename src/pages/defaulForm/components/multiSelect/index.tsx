@@ -6,6 +6,7 @@ import {
   ResponseOptionContainer,
 } from "./styles";
 import {
+  FieldErrors,
   UseFormRegister,
   UseFormWatch,
   useFieldArray,
@@ -23,6 +24,7 @@ import { FaCheck } from "react-icons/fa";
 import { answersProps, questionInput } from "../../../quiz/quiz.interface";
 import { PopOverRoot, PopOverTrigger } from "../../../../components/popOver";
 import { elementsProps, quizValue } from "../Group";
+import { toast } from "sonner";
 
 const MultiSelectComponent = ({
   code,
@@ -34,8 +36,18 @@ const MultiSelectComponent = ({
 }: Partial<elementsProps>) => {
   const [minimize, setMinimize] = useState(false);
   const [removeElement, setRemoveElement] = useState(false);
+  const [_a, dimensionIndex, _b, questionIndex] = (child_key as string)?.split(
+    "."
+  );
 
-  const { register, watch, control, getValues, setValue } = useFormContext<{
+  const {
+    register,
+    watch,
+    control,
+    getValues,
+    setValue,
+    formState: { errors },
+  } = useFormContext<{
     [x: string]: questionInput;
   }>();
 
@@ -44,26 +56,10 @@ const MultiSelectComponent = ({
     control,
   });
 
-  const updateAnswerWeight = (weight: number) => {
-    const answersIfWeight = fields.filter((e) => !!e.weight);
-
-    if (answersIfWeight.length) {
-      const currentAnswer = answersIfWeight[0];
-      const answerIndex = fields.findIndex((e) => e.id === currentAnswer.id);
-
-      update(answerIndex, {
-        ...currentAnswer,
-        weight,
-      });
-    }
-  };
-
   useEffect(() => {
     const { max_value_set_manually } = getValues(child_key as string);
 
     if (!max_value_set_manually) {
-      updateAnswerWeight(max_value as number);
-
       setValue(`${child_key}.max_value`, max_value);
     }
   }, [max_value, child_key]);
@@ -81,8 +77,6 @@ const MultiSelectComponent = ({
   };
 
   const handleUpdateQuestionWeight = (data: questionInput) => {
-    updateAnswerWeight(Number(data.max_value));
-
     onUpdateQuestion?.({
       ...watch(child_key as string),
       max_value: Number(data.max_value),
@@ -120,7 +114,7 @@ const MultiSelectComponent = ({
   }, [questions, quizValue]);
 
   const questionsMaxValue = useMemo(() => {
-    let divideBy = fields.length;
+    let divideBy = fields.filter((e) => e?.correct_answer).length;
     let calcMaxValue = max_value;
 
     const aFieldHasMaxValue = fields.filter(
@@ -142,6 +136,23 @@ const MultiSelectComponent = ({
 
     return parseFloat(value.toFixed(2));
   }, [fields, max_value]);
+
+  useEffect(() => {
+    const questionErrors =
+      (errors as any)?.dimentions?.[dimensionIndex]?.questions?.[
+        questionIndex
+      ] || {};
+
+    if (Object.keys(questionErrors)?.length) {
+      for (const key in questionErrors) {
+        const currentError = questionErrors[key];
+
+        if (currentError?.message) {
+          toast.error(currentError?.message);
+        }
+      }
+    }
+  }, [errors]);
 
   return (
     <MultiSelectContainer
@@ -189,6 +200,11 @@ const MultiSelectComponent = ({
       <Input
         label="Pergunta"
         register={{ ...register(`${child_key}.title`) }}
+        error={
+          (errors as any)?.dimentions?.[dimensionIndex]?.questions?.[
+            questionIndex
+          ]?.title?.message
+        }
       />
 
       <div className="response">
@@ -208,8 +224,14 @@ const MultiSelectComponent = ({
                   child_key={`${child_key}.answers.${i}`}
                   remove={() => remove(i)}
                   question_value={max_value}
+                  data={e}
                   onUpdateValue={handleUpdateAnswer}
                   max_value={answerMaxValue}
+                  errors={
+                    (errors as any)?.dimentions?.[dimensionIndex]?.questions?.[
+                      questionIndex
+                    ]?.answers?.[i]
+                  }
                 />
               </li>
             );
@@ -238,6 +260,8 @@ interface responseProps {
   watch: UseFormWatch<any>;
   max_value: number;
   question_value: number;
+  errors: FieldErrors<answersProps>;
+  data: answersProps;
 }
 
 const ResponseOption = ({
@@ -250,8 +274,12 @@ const ResponseOption = ({
   answers,
   max_value,
   question_value,
+  errors,
+  data,
 }: responseProps) => {
   const correct_answer = watch(`${child_key}.correct_answer`) || false;
+
+  const answerValue = data?.correct_answer ? max_value : 0;
 
   const maxToSet = useMemo(() => {
     let calcMaxValue = question_value;
@@ -274,26 +302,29 @@ const ResponseOption = ({
 
   const handleMarkAsCorrect = () => {
     onUpdateValue(index, {
-      ...watch(child_key),
+      ...data,
       correct_answer: !watch(`${child_key}.correct_answer`),
     });
   };
 
   useEffect(() => {
-    const max_value_set_manually = watch(`${child_key}.max_value_set_manually`);
-
-    if (!max_value_set_manually) {
+    if (answerValue) {
       onUpdateValue(index, {
-        ...watch(child_key),
-        weight: max_value,
+        ...data,
+        weight: answerValue,
+      });
+    } else {
+      onUpdateValue(index, {
+        ...data,
+        weight: 0,
       });
     }
-  }, [max_value, child_key]);
+  }, [answerValue]);
 
-  const handleUpdateQuestionWeight = (data: questionInput) => {
+  const handleUpdateQuestionWeight = (value: questionInput) => {
     onUpdateValue?.(index, {
-      ...watch(child_key),
-      weight: Number(data.max_value),
+      ...data,
+      weight: Number(value.max_value),
       max_value_set_manually: true,
     });
   };
@@ -303,9 +334,10 @@ const ResponseOption = ({
       <Input
         placeholder="Opção"
         register={{ ...register(`${child_key}.title`) }}
+        error={errors?.title?.message}
       />
       <ChangeValueButton
-        max_value={max_value as number}
+        max_value={answerValue}
         max_to_set={maxToSet}
         has_manually_set={watch(`${child_key}.max_value_set_manually`)}
         title={false}

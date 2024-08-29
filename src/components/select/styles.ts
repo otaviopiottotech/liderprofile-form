@@ -126,6 +126,11 @@ export const SelectItemText = styled(SelectPrimitive.ItemText)`
   color: ${({ theme }) => theme.colors.grayscale.gray_70};
 `;
 
+export const SelectIcon = styled(SelectPrimitive.Icon)`
+  display: flex;
+  align-items: center;
+`;
+
 const scrollStyle = css`
   display: flex;
   align-items: center;

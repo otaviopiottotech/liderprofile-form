@@ -1,69 +1,111 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { QuestionarioContainer } from "./styles";
 import { useForm } from "react-hook-form";
-import { answersProps, dimensionModel } from "../quiz/quiz.interface";
+import { answersProps, questionInput } from "../quiz/quiz.interface";
 import QuizSelect from "./components/select";
 import QuizMultiSelect from "./components/multiSelect";
 import { NavLink } from "react-router-dom";
+import { teste } from "../quiz";
+import Modal, { ModalTitle } from "../../components/modal";
+import ButtonComponent from "../../components/button";
 
 interface quizInputs {
-  questions: {
-    code: string;
-    answers: answersProps[];
+  dimentions: {
+    calc: string;
+    title: string;
+    questions: {
+      code: string;
+      answers: answersProps[];
+    }[];
   }[];
 }
 
 const Ques = () => {
   const { handleSubmit, setValue } = useForm<quizInputs>();
 
-  const foudQ = useMemo<dimensionModel>(() => {
+  const foudQ = useMemo<teste | undefined>(() => {
     const q = localStorage.getItem("questionario1");
 
     if (q) {
-      return JSON.parse(q);
+      const parseQuestion: teste = JSON.parse(q);
+
+      parseQuestion.dimentions.forEach((e, i) => {
+        setValue(`dimentions.${i}`, e as any);
+      });
+
+      return parseQuestion;
     }
     return undefined;
   }, []);
 
   const onSubmit = handleSubmit((data) => {
-    const grade = data.questions.map((e) => {
-      return {
-        code: e.code,
-        grade: e.answers.reduce((a, b) => {
-          const value = b.correct_answer ? Number(b.weight) : 0;
-          return a + value;
-        }, 0),
-      };
-    });
+    let group: any = [];
 
-    console.log({ grade, data });
-    let finalCalc = foudQ.calc;
+    for (let dI = 0; dI < data.dimentions.length; dI++) {
+      const currentDimension = data.dimentions[dI];
 
-    for (let i = 0; i < foudQ.questions.length; i++) {
-      const currentQ = foudQ.questions[i];
+      const grade = (currentDimension.questions as questionInput[]).map((e) => {
+        return {
+          code: e.code,
+          grade: (e?.answers as answersProps[]).reduce((a, b) => {
+            const value = b.correct_answer ? Number(b.weight) : 0;
+            return a + value;
+          }, 0),
+        };
+      });
 
-      const acertoValue = grade.filter((e) => e.code === currentQ.code);
+      let finalCalc = currentDimension.calc as string;
 
-      if (acertoValue.length) {
-        finalCalc = finalCalc.replaceAll(
-          acertoValue[0].code,
-          acertoValue[0].grade + ""
-        );
-      } else {
-        finalCalc = finalCalc.replaceAll(currentQ.code, "0");
+      for (
+        let i = 0;
+        i < (currentDimension.questions as questionInput[]).length;
+        i++
+      ) {
+        const currentQ = (currentDimension.questions as questionInput[])[i];
+
+        const acertoValue = grade.filter((e) => e.code === currentQ.code);
+
+        if (acertoValue.length) {
+          finalCalc = finalCalc.replaceAll(
+            acertoValue[0].code,
+            acertoValue[0].grade + ""
+          );
+        } else {
+          finalCalc = finalCalc.replaceAll(currentQ.code, "0");
+        }
       }
+
+      group = [
+        ...group,
+        {
+          ...currentDimension,
+          grade: eval(finalCalc),
+        },
+      ];
     }
 
-    window.alert(`Sua Nota: ${eval(finalCalc)}`);
+    const quizData = {
+      ...foudQ,
+      date: new Date(),
+      dimentions: group,
+      originalDimentions: foudQ?.dimentions,
+    };
+
+    console.log(quizData);
+    localStorage.setItem("quiz-done", JSON.stringify(quizData));
   });
 
   const handleUpdateQuestion = (
     index: number,
+    dimensionIndex: number,
     code: string,
     answers: answersProps[]
   ) => {
-    setValue(`questions.${index}.code`, code);
-    setValue(`questions.${index}.answers`, answers);
+    setValue(`dimentions.${dimensionIndex}.questions.${index}.code`, code);
+    setValue(
+      `dimentions.${dimensionIndex}.questions.${index}.answers`,
+      answers
+    );
   };
 
   return (
@@ -73,32 +115,54 @@ const Ques = () => {
       </div>
 
       <form onSubmit={onSubmit}>
-        {foudQ?.questions?.length > 0 &&
-          foudQ?.questions?.map((e, i) => {
-            if (e.type === "select") {
-              return (
-                <section key={e.code} className="question-container">
-                  <QuizSelect
-                    title={e.title as string}
-                    answers={e.answers as answersProps[]}
-                    onChangeAnswer={(answers) =>
-                      handleUpdateQuestion(i, e.code, answers)
-                    }
-                  />
-                </section>
-              );
-            }
-
+        {foudQ &&
+          foudQ?.dimentions?.length > 0 &&
+          foudQ?.dimentions?.map((dimension, dimensionIndex) => {
             return (
-              <section key={e.code} className="question-container">
-                <QuizMultiSelect
-                  title={e.title as string}
-                  answers={e.answers as answersProps[]}
-                  key={e.code}
-                  onChangeAnswer={(answers) =>
-                    handleUpdateQuestion(i, e.code, answers)
+              <section key={dimensionIndex} className="group-section">
+                <div className="group-header-container">
+                  <h4>{dimension.title}</h4>
+                  <p>{dimension?.description}</p>
+                </div>
+
+                {dimension.questions?.map((e, i) => {
+                  if (e.type === "select") {
+                    return (
+                      <section key={e.code} className="question-container">
+                        <QuizSelect
+                          title={e.title as string}
+                          answers={e.answers as answersProps[]}
+                          onChangeAnswer={(answers) =>
+                            handleUpdateQuestion(
+                              i,
+                              dimensionIndex,
+                              e.code,
+                              answers
+                            )
+                          }
+                        />
+                      </section>
+                    );
                   }
-                />
+
+                  return (
+                    <section key={e.code} className="question-container">
+                      <QuizMultiSelect
+                        title={e.title as string}
+                        answers={e.answers as answersProps[]}
+                        key={e.code}
+                        onChangeAnswer={(answers) =>
+                          handleUpdateQuestion(
+                            i,
+                            dimensionIndex,
+                            e.code,
+                            answers
+                          )
+                        }
+                      />
+                    </section>
+                  );
+                })}
               </section>
             );
           })}
@@ -116,10 +180,48 @@ const Ques = () => {
           >
             Voltar
           </NavLink>
-          <button>Enviar</button>
+          <SendQuizButton onSend={onSubmit} />
         </div>
       </form>
     </QuestionarioContainer>
+  );
+};
+
+interface SendButtonQuizProps {
+  onSend(): void;
+}
+
+const SendQuizButton = ({ onSend }: SendButtonQuizProps) => {
+  const [open, setOpen] = useState(false);
+
+  const handleClick = () => {
+    onSend();
+    setOpen(true);
+  };
+
+  return (
+    <>
+      <Modal open={open} onOpenChange={() => setOpen(!open)}>
+        <div style={{ padding: "2em" }}>
+          <ModalTitle>Formulário enviado com sucesso</ModalTitle>
+          <NavLink
+            style={{
+              textDecoration: "none",
+              color: "black",
+              padding: "10px 12px",
+              display: "block",
+              fontFamily: "'Poppins', sans-serif",
+            }}
+            to={"/relatorio"}
+          >
+            Ver Relatório
+          </NavLink>
+        </div>
+      </Modal>
+      <ButtonComponent buttonStyles="confirm" onClick={handleClick}>
+        Enviar
+      </ButtonComponent>
+    </>
   );
 };
 

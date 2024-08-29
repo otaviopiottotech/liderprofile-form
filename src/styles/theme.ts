@@ -13,6 +13,7 @@ export const light = {
   colors: {
     brand: {
       blue: "#0054a4",
+      orange: "#f15738",
       light_blue: "#0040E6",
       dark_blue: "#012648",
       white: "#FFFFFF",
@@ -124,6 +125,7 @@ export const dark = {
       blue: "#0054a4",
       light_blue: "#0040E6",
       dark_blue: "#012648",
+      orange: "#f15738",
       black: "#fff",
       white: "#212E2F",
     },

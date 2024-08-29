@@ -1,13 +1,16 @@
 import styled, { css } from "styled-components";
-import { inputStyle, inputTheme } from ".";
+import { inputStyle } from ".";
 
 const primary = css`
   ${({ theme }) => {
     return css`
       background-color: ${theme.colors.brand.white};
-      border: 1px solid ${theme.colors.grayscale.gray_30};
       ${theme.font.p.normal};
-      color: ${theme.colors.grayscale.gray_80};
+      color: ${theme.colors.grayscale.gray_50};
+
+      textarea {
+        border: 1px solid ${theme.colors.grayscale.gray_20};
+      }
     `;
   }}
 `;
@@ -15,9 +18,13 @@ const secondary = css`
   ${({ theme }) => {
     return css`
       background-color: transparent;
-      border: 1px solid ${theme.colors.grayscale.gray_90};
       ${theme.font.p.normal};
-      color: ${theme.colors.grayscale.gray_60};
+      color: ${theme.colors.grayscale.gray_30};
+
+      textarea {
+        border: 1px solid ${theme.colors.grayscale.gray_20};
+        ${({ theme }) => theme.font.p.extra_small};
+      }
     `;
   }}
 `;
@@ -45,81 +52,35 @@ const styles = {
 
 interface inputStyleProps {
   $inputStyle: inputStyle;
-  $inputTheme: inputTheme;
   $required?: boolean;
-  $disabled?: boolean;
   $error?: string;
 }
 
-export const inputDark = css`
-  ${({ theme }) => {
-    return css`
-      .input-label {
-        color: ${theme.colors.brand.white};
-      }
-    `;
-  }}
-`;
-export const inputLight = css`
-  ${({ theme }) => {
-    return css`
-      .input-label {
-        color: ${theme.colors.grayscale.gray_70};
-      }
-    `;
-  }}
-`;
-
-const inputThemeStyle = {
-  dark: inputDark,
-  light: inputLight,
-};
-
 export const InputContainer = styled.div<inputStyleProps>`
-  transition: 0.3s;
-  ${({ $disabled }) => {
-    if ($disabled) {
-      return css`
-        opacity: 0.5;
-
-        input {
-          background-color: ${({ theme }) => theme.colors.grayscale.gray_10};
-        }
-      `;
-    }
-  }}
-
-  ${({ $disabled }) => {
-    if ($disabled) {
-      return css`
-        opacity: 0.5;
-
-        input {
-          background-color: ${({ theme }) => theme.colors.grayscale.gray_10};
-        }
-      `;
-    }
-  }}
-  ${({ $inputTheme }) => inputThemeStyle[$inputTheme]}
-
-  input {
+  textarea {
     width: 100%;
     box-sizing: border-box;
-    padding: 0.4em 0.8em;
+    padding: 0.8em 0.8em;
     text-align: left;
     cursor: pointer;
     justify-content: flex-start;
     color: ${({ theme }) => theme.colors.grayscale.gray_90};
-    ${({ theme }) => theme.font.p.small};
+    ${({ theme }) => theme.font.p.normal};
     border-radius: 0.5em;
+    border: 0;
+    background-color: ${({ theme }) => theme.colors.brand.white};
   }
 
   .input-label {
     ${({ theme }) => theme.font.p.small};
-
-    margin-bottom: 0.2em;
+    color: ${({ $inputStyle, theme }) =>
+      $inputStyle === "secondary"
+        ? theme.colors.brand.dark_blue
+        : theme.colors.grayscale.gray_70};
+    margin-bottom: 0.4em;
     display: block;
   }
+
   .error-container {
     ${({ theme }) => theme.font.p.small};
     color: ${({ theme }) => theme.colors.support.error};
