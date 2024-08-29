@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   CSSProperties,
-  InputHTMLAttributes,
   ReactNode,
+  TextareaHTMLAttributes,
   forwardRef,
   useMemo,
 } from "react";
 import { InputContainer } from "./styles";
 
 export type inputStyle = "primary" | "secondary";
-export type inputTheme = "dark" | "light";
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface TexAreaProps
+  extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   affix?: {
     prefix?: ReactNode;
     suffix?: ReactNode;
@@ -20,23 +20,21 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   register?: any;
-  inputTheme?: inputTheme;
   containerStyle?: CSSProperties;
 }
 
-const Input = forwardRef(
+const TextArea = forwardRef(
   (
     {
       affix,
-      inputStyle = "primary",
+      inputStyle = "secondary",
       label,
       required = false,
       error,
       register,
-      inputTheme = "light",
       containerStyle,
       ...props
-    }: InputProps,
+    }: TexAreaProps,
     ref
   ) => {
     const prefix = useMemo(() => {
@@ -62,15 +60,12 @@ const Input = forwardRef(
         $inputStyle={inputStyle}
         $required={required}
         $error={error}
-        $inputTheme={inputTheme}
-        $disabled={props.disabled}
         style={containerStyle}
-        className="input-component-container"
       >
         {label && <label className="input-label">{label}</label>}
         <div className="input-container">
           {prefix}
-          <input type="text" ref={ref} {...props} {...register} />
+          <textarea rows={3} ref={ref} {...props} {...register} />
           {suffix}
         </div>
         {error && <div className="error-container">{error}</div>}
@@ -79,4 +74,4 @@ const Input = forwardRef(
   }
 );
 
-export default Input;
+export default TextArea;

@@ -12,6 +12,7 @@ import { extractPatterns } from "../../../../utils/extractPattern";
 import SelectComponent from "../select";
 import { elementsOptions } from "../../../quiz/components/elementsSelection";
 import { AiOutlineClose, AiOutlineRight } from "react-icons/ai";
+import { toast } from "sonner";
 
 const handleRemoveQuestion = (expression: string, nodeToRemove: string) => {
   const regex = new RegExp(
@@ -52,6 +53,7 @@ const handleRemoveQuestion = (expression: string, nodeToRemove: string) => {
 const ElementList = {
   multi_select: <MultiSelectComponent />,
   select: <SelectComponent />,
+  group: <SelectComponent />,
 };
 
 export const quizValue = 100;
@@ -75,8 +77,13 @@ export interface elementsProps {
 const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
   const [removeElement, setRemoveElement] = useState(false);
   const [minimize, setMinimize] = useState(false);
-
-  const { watch, control, setValue } = useFormContext<{
+  const [_a, dimensionIndex] = (child_key as string)?.split(".");
+  const {
+    watch,
+    control,
+    setValue,
+    formState: { errors },
+  } = useFormContext<{
     [x: string]: dimensionModel;
   }>();
 
@@ -210,6 +217,20 @@ const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
     }, 300);
   };
 
+  useEffect(() => {
+    const questionErrors = (errors as any)?.dimentions?.[dimensionIndex] || {};
+
+    if (Object.keys(questionErrors)?.length) {
+      for (const key in questionErrors) {
+        const currentError = questionErrors[key];
+
+        if (currentError?.message) {
+          toast.error(currentError?.message);
+        }
+      }
+    }
+  }, [errors]);
+
   return (
     <FormGroupContainer
       $minimize={minimize}
@@ -254,21 +275,27 @@ const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
       {fields.length ? (
         <div className="form-questions-container">
           <ul>
-            {fields.map((e, i) => (
-              <li key={e._id}>
-                {cloneElement(ElementList[e.type], {
-                  code: "P" + (i + 1),
-                  index: i,
-                  max_value: e.max_value_set_manually
-                    ? (e?.max_value as number)
-                    : questionsMaxValue,
-                  removeQuestion: () => remove(i),
-                  child_key: `${child_key}.questions.${i}`,
-                  onUpdateQuestion: (data: any) =>
-                    handleUpdateQuestion(i, data),
-                })}
-              </li>
-            ))}
+            {fields.map((e, i) => {
+              const answerMaxValue = e.max_value_set_manually
+                ? (e?.weight as number)
+                : questionsMaxValue;
+
+              return (
+                <li key={e._id + answerMaxValue}>
+                  {cloneElement(ElementList[e.type], {
+                    code: "P" + (i + 1),
+                    index: i,
+                    max_value: e.max_value_set_manually
+                      ? (e?.max_value as number)
+                      : questionsMaxValue,
+                    removeQuestion: () => remove(i),
+                    child_key: `${child_key}.questions.${i}`,
+                    onUpdateQuestion: (data: any) =>
+                      handleUpdateQuestion(i, data),
+                  })}
+                </li>
+              );
+            })}
           </ul>
         </div>
       ) : (

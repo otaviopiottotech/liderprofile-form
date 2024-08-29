@@ -25,12 +25,20 @@ export const QuestionarioContainer = styled.section`
     margin-top: 40px;
 
     .group-section {
-      h4 {
-        color: ${({ theme }) => theme.colors.grayscale.gray_80};
-        ${({ theme }) => theme.font.h3};
-        font-weight: 600;
-
+      .group-header-container {
         margin-bottom: 1em;
+
+        h4 {
+          color: ${({ theme }) => theme.colors.grayscale.gray_80};
+          ${({ theme }) => theme.font.h3};
+          font-weight: 600;
+          margin-bottom: 10px;
+        }
+
+        p {
+          color: ${({ theme }) => theme.colors.grayscale.gray_80};
+          ${({ theme }) => theme.font.p.extra_small};
+        }
       }
 
       & + .group-section {

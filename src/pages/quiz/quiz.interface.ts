@@ -24,11 +24,21 @@ export interface questionInput {
   _id: string;
 }
 
+export interface rulesModel {
+  grade?: number;
+  compare: string;
+  message?: string;
+  title?: string;
+}
+
 export interface dimensionModel {
   title?: string;
+  description?: string;
   total?: number;
   calc?: string;
   color: string;
   _id: string;
+  grade?: number;
+  rules?: rulesModel[];
   questions?: questionInput[];
 }

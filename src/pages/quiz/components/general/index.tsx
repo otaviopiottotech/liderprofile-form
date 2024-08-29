@@ -5,7 +5,7 @@ import { GeneralConfigurationContainer } from "./styles";
 const QuizGenerealConfiguration = ({
   formMethods,
 }: Omit<sideHeaderProps, "fieldsArray">) => {
-  const { setValue, register, watch } = formMethods;
+  const { register } = formMethods;
 
   // const handleChangeInput = (value: string) => {
   //   setValue("calc", value.toLocaleUpperCase());

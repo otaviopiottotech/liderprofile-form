@@ -5,7 +5,6 @@ import { questionsType } from "../../quiz.interface";
 import { sideHeaderProps } from "../sidebar";
 import { PopOverRoot, PopOverTrigger } from "../../../../components/popOver";
 import { getRandomColor } from "../../../../utils/randomColor";
-import { FaIndent } from "react-icons/fa";
 
 interface elementsType {
   title: string;
@@ -24,11 +23,11 @@ export const elementsOptions: elementsType[] = [
     icon: <MdCheckBox />,
     type: "select",
   },
-  {
-    title: "Grupo",
-    icon: <FaIndent />,
-    type: "group",
-  },
+  // {
+  //   title: "Grupo",
+  //   icon: <FaIndent />,
+  //   type: "group",
+  // },
 ];
 
 const ElementsSelection = ({ fieldsArray, formMethods }: sideHeaderProps) => {

@@ -5,6 +5,7 @@ import { SelectItemProps, SelectProps } from "@radix-ui/react-select";
 import {
   SelectContainer,
   SelectContent,
+  SelectIcon,
   SelectItemContainer,
   SelectItemText,
   SelectRoot,
@@ -54,9 +55,9 @@ export const Select = React.forwardRef(
               </div>
             )}
             <SelectValue placeholder={placeholder} />
-            <SelectPrimitive.Icon>
+            <SelectIcon>
               <FaAngleDown />
-            </SelectPrimitive.Icon>
+            </SelectIcon>
           </SelectTrigger>
           <SelectPrimitive.Portal>
             <SelectContent>

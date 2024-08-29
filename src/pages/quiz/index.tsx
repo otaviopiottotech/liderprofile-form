@@ -7,18 +7,57 @@ import {
 } from "react-hook-form";
 import QuizSideBar from "./components/sidebar";
 import { QuizContainer, QuizDock } from "./styles";
-import { dimensionModel } from "./quiz.interface";
+import { answersProps, dimensionModel } from "./quiz.interface";
 import FormGroup from "../defaulForm/components/Group";
-import { NavLink } from "react-router-dom";
 import { getRandomColor } from "../../utils/randomColor";
+import { FaPlus } from "react-icons/fa";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import ButtonComponent from "../../components/button";
+import { toast } from "sonner";
+import { NavLink } from "react-router-dom";
+
+const validateAnswerBy = (answers: answersProps[]) => {
+  const findCorrectAnswer = answers.filter((e) => e.correct_answer);
+
+  return !!findCorrectAnswer.length;
+};
+
+const createQuizValidation = yup.object().shape({
+  dimentions: yup
+    .array()
+    .of(
+      yup.object().shape({
+        title: yup.string().required("O título é obrigatório"),
+        questions: yup
+          .array()
+          .of(
+            yup.object().shape({
+              title: yup.string().required("O título é obrigatório"),
+              answers: yup
+                .array()
+                .of(
+                  yup.object().shape({
+                    title: yup
+                      .string()
+                      .required("O título da resposta é obrigatório"),
+                  })
+                )
+                .test({
+                  name: "oneMustBeCorrect",
+                  test: (arr: any) => validateAnswerBy(arr),
+                  message: "Marque pelo menos uma questão como correta",
+                  exclusive: false,
+                }),
+            })
+          )
+          .min(1, "Adicione ao menos uma pergunta"),
+      })
+    )
+    .min(1),
+});
 
 const QuizScreen = () => {
-  // const formMethods = useForm<dimensionModel>({
-  //   defaultValues: localStorage.getItem("questionario1")
-  //     ? JSON.parse(localStorage.getItem("questionario1") as string)
-  //     : {},
-  // });
-
   const formMethods = useForm<teste>({
     defaultValues: localStorage.getItem("questionario1")
       ? JSON.parse(localStorage.getItem("questionario1") as string)
@@ -27,11 +66,12 @@ const QuizScreen = () => {
           dimentions: [
             {
               _id: window.crypto.randomUUID(),
-              title: "Grupo 1",
+              title: "Tópico 1",
               color: getRandomColor(),
             },
           ],
         },
+    resolver: yupResolver(createQuizValidation) as any,
   });
 
   const fieldMethod = useFieldArray({
@@ -41,8 +81,8 @@ const QuizScreen = () => {
 
   const onSubmit = formMethods.handleSubmit((data) => {
     console.log(data);
-
     localStorage.setItem("questionario1", JSON.stringify(data));
+    toast.success("Questionário salvo com sucesso");
   });
 
   const handleAddNewDimension = () => {
@@ -50,7 +90,7 @@ const QuizScreen = () => {
     fieldMethod.append({
       _id,
       color: getRandomColor(),
-      title: "Grupo " + (fieldMethod.fields.length + 1),
+      title: "Tópico " + (fieldMethod.fields.length + 1),
     });
   };
 
@@ -58,11 +98,8 @@ const QuizScreen = () => {
     <QuizContainer>
       <QuizSideBar formMethods={formMethods} fieldsArray={fieldMethod} />
       <section className="quiz-form-content">
-        <Test formMethods={formMethods} fieldMethod={fieldMethod} />
+        <Dimension formMethods={formMethods} fieldMethod={fieldMethod} />
         <QuizDock>
-          <button type="button" onClick={handleAddNewDimension}>
-            teste
-          </button>
           <NavLink
             style={{
               textDecoration: "none",
@@ -75,9 +112,22 @@ const QuizScreen = () => {
           >
             Ver formulário
           </NavLink>
-          <button type="button" className="save-button" onClick={onSubmit}>
+          <ButtonComponent
+            style={{ justifySelf: "center" }}
+            buttonStyles="text"
+            onClick={handleAddNewDimension}
+          >
+            <FaPlus /> Adicionar Tópico
+          </ButtonComponent>
+
+          <ButtonComponent
+            style={{ justifySelf: "flex-end" }}
+            onClick={onSubmit}
+            buttonStyles="confirm"
+            disabled={!fieldMethod?.fields?.length}
+          >
             Salvar Questionário
-          </button>
+          </ButtonComponent>
         </QuizDock>
       </section>
     </QuizContainer>
@@ -94,7 +144,7 @@ interface testeC {
   fieldMethod: UseFieldArrayReturn<teste, "dimentions", "id">;
 }
 
-const Test = ({ formMethods, fieldMethod }: testeC) => {
+const Dimension = ({ formMethods, fieldMethod }: testeC) => {
   const { fields, remove } = fieldMethod;
   const { watch } = formMethods;
 

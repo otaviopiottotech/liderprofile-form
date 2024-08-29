@@ -10,7 +10,7 @@ export const FormGroupContainer = styled.section<multiSelectorProps>`
   max-height: 300vh;
   overflow: hidden;
   background-color: ${({ theme }) => theme.colors.brand.white};
-  border-radius: 16px;
+  border-radius: 4px;
   box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.15);
   transition: 300ms;
 

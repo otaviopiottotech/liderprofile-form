@@ -1,10 +1,13 @@
 import { UseFieldArrayReturn, UseFormReturn } from "react-hook-form";
-import { QuizSideContainer } from "./styles";
+import { DimensionButton, QuizSideContainer } from "./styles";
 import CollapsableMenu from "../collapsableMenu";
 import QuizGenerealConfiguration from "../general";
 import { teste } from "../..";
 import QuizDimentionsConfig from "../dimensions";
 import ElementsSelection from "../elementsSelection";
+import { useState } from "react";
+import Modal from "../../../../components/modal";
+import { dimensionModel } from "../../quiz.interface";
 
 export interface sideHeaderProps {
   formMethods: UseFormReturn<teste>;
@@ -23,25 +26,56 @@ const QuizSideBar = ({ formMethods, fieldsArray }: sideHeaderProps) => {
         content={<QuizGenerealConfiguration formMethods={formMethods} />}
       />
 
-      <fieldset>
-        <legend>Grupos</legend>
+      {fields?.length > 0 && (
+        <fieldset>
+          <legend>Tópicos</legend>
 
-        {fields.map((e, i) => (
-          <CollapsableMenu
-            key={e._id}
-            title={formMethods.watch(`dimentions.${i}.title`) + ""}
-            content={
-              <QuizDimentionsConfig
+          <ul className="topic-list">
+            {fields.map((e, i) => (
+              <DimensionButtonCaller
+                data={e}
+                index={i}
+                fieldsArray={fieldsArray}
                 formMethods={formMethods}
-                child_key={`dimentions.${i}`}
+                key={i}
               />
-            }
-          />
-        ))}
-      </fieldset>
+            ))}
+          </ul>
+        </fieldset>
+      )}
 
       <ElementsSelection fieldsArray={fieldsArray} formMethods={formMethods} />
     </QuizSideContainer>
+  );
+};
+
+interface dimensionButtonProps extends sideHeaderProps {
+  data: dimensionModel;
+  index: number;
+}
+
+const DimensionButtonCaller = ({
+  formMethods,
+  data,
+  index,
+}: dimensionButtonProps) => {
+  const [open, setOpen] = useState(false);
+  const { watch } = formMethods;
+
+  return (
+    <>
+      <Modal open={open} onOpenChange={() => setOpen(!open)}>
+        <QuizDimentionsConfig
+          formMethods={formMethods}
+          data={data}
+          child_key={`dimentions.${index}`}
+        />
+      </Modal>
+
+      <DimensionButton buttonStyles="text" onClick={() => setOpen(true)}>
+        {watch(`dimentions.${index}.title`)}
+      </DimensionButton>
+    </>
   );
 };
 

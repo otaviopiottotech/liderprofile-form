@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { QuestionarioContainer } from "./styles";
 import { useForm } from "react-hook-form";
 import { answersProps, questionInput } from "../quiz/quiz.interface";
@@ -6,6 +6,8 @@ import QuizSelect from "./components/select";
 import QuizMultiSelect from "./components/multiSelect";
 import { NavLink } from "react-router-dom";
 import { teste } from "../quiz";
+import Modal, { ModalTitle } from "../../components/modal";
+import ButtonComponent from "../../components/button";
 
 interface quizInputs {
   dimentions: {
@@ -28,8 +30,7 @@ const Ques = () => {
       const parseQuestion: teste = JSON.parse(q);
 
       parseQuestion.dimentions.forEach((e, i) => {
-        setValue(`dimentions.${i}.title`, e.title as string);
-        setValue(`dimentions.${i}.calc`, e.calc as string);
+        setValue(`dimentions.${i}`, e as any);
       });
 
       return parseQuestion;
@@ -38,9 +39,7 @@ const Ques = () => {
   }, []);
 
   const onSubmit = handleSubmit((data) => {
-    let grades = "";
-
-    console.log(data);
+    let group: any = [];
 
     for (let dI = 0; dI < data.dimentions.length; dI++) {
       const currentDimension = data.dimentions[dI];
@@ -76,14 +75,24 @@ const Ques = () => {
         }
       }
 
-      console.log({ currentDimension: currentDimension.title, finalCalc });
-
-      grades =
-        grades +
-        " ;" +
-        `Grupo:${currentDimension.title} e nota: ${eval(finalCalc)}`;
+      group = [
+        ...group,
+        {
+          ...currentDimension,
+          grade: eval(finalCalc),
+        },
+      ];
     }
-    window.alert(grades);
+
+    const quizData = {
+      ...foudQ,
+      date: new Date(),
+      dimentions: group,
+      originalDimentions: foudQ?.dimentions,
+    };
+
+    console.log(quizData);
+    localStorage.setItem("quiz-done", JSON.stringify(quizData));
   });
 
   const handleUpdateQuestion = (
@@ -111,7 +120,10 @@ const Ques = () => {
           foudQ?.dimentions?.map((dimension, dimensionIndex) => {
             return (
               <section key={dimensionIndex} className="group-section">
-                <h4>{dimension.title}</h4>
+                <div className="group-header-container">
+                  <h4>{dimension.title}</h4>
+                  <p>{dimension?.description}</p>
+                </div>
 
                 {dimension.questions?.map((e, i) => {
                   if (e.type === "select") {
@@ -168,10 +180,48 @@ const Ques = () => {
           >
             Voltar
           </NavLink>
-          <button>Enviar</button>
+          <SendQuizButton onSend={onSubmit} />
         </div>
       </form>
     </QuestionarioContainer>
+  );
+};
+
+interface SendButtonQuizProps {
+  onSend(): void;
+}
+
+const SendQuizButton = ({ onSend }: SendButtonQuizProps) => {
+  const [open, setOpen] = useState(false);
+
+  const handleClick = () => {
+    onSend();
+    setOpen(true);
+  };
+
+  return (
+    <>
+      <Modal open={open} onOpenChange={() => setOpen(!open)}>
+        <div style={{ padding: "2em" }}>
+          <ModalTitle>Formulário enviado com sucesso</ModalTitle>
+          <NavLink
+            style={{
+              textDecoration: "none",
+              color: "black",
+              padding: "10px 12px",
+              display: "block",
+              fontFamily: "'Poppins', sans-serif",
+            }}
+            to={"/relatorio"}
+          >
+            Ver Relatório
+          </NavLink>
+        </div>
+      </Modal>
+      <ButtonComponent buttonStyles="confirm" onClick={handleClick}>
+        Enviar
+      </ButtonComponent>
+    </>
   );
 };
 

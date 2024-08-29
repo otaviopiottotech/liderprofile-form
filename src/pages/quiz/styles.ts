@@ -15,20 +15,22 @@ export const QuizContainer = styled.main`
 
   .dimensionsList {
     flex: 1;
+    width: 100%;
     max-width: 1000px;
     display: flex;
+    margin: 0 auto;
     flex-direction: column;
     gap: 1em;
     padding: 1em;
     margin-bottom: 1em;
-    border-radius: 8px;
+    border-radius: 3px;
     box-shadow: 0 4px 2em -10px rgba(0, 0, 0, 0.1);
     background-color: ${({ theme }) => theme.colors.brand.white};
 
     .header {
       h1 {
         color: ${({ theme }) => theme.colors.grayscale.gray_90};
-        ${({ theme }) => theme.font.p.medium_bold};
+        ${({ theme }) => theme.font.p.large_bold};
       }
     }
   }
@@ -36,8 +38,9 @@ export const QuizContainer = styled.main`
 
 export const QuizDock = styled.section`
   padding: 0.5em;
-  display: flex;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
   border-radius: 12px;
   position: sticky;
   bottom: 20px;
@@ -46,18 +49,26 @@ export const QuizDock = styled.section`
   box-shadow: 0 4px 2em -10px rgba(0, 0, 0, 0.1);
   background-color: ${({ theme }) => theme.colors.brand.white};
 
-  .save-button {
+  button {
+    width: fit-content;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.7em;
-    background-color: ${({ theme }) => theme.colors.support.success};
     border-radius: 6px;
+    gap: 10px;
+    padding: 8px 12px;
     transition: 0.2s;
-    color: ${({ theme }) => theme.colors.brand.white};
+  }
 
-    &:hover {
-      scale: 1.03;
-    }
+  .save-button {
+    justify-self: flex-end;
+    background-color: ${({ theme }) => theme.colors.support.success};
+    color: ${({ theme }) => theme.colors.brand.white};
+  }
+
+  .topic-button {
+    justify-self: center;
+    background-color: ${({ theme }) => theme.colors.grayscale.gray_10};
+    color: ${({ theme }) => theme.colors.grayscale.gray_60};
   }
 `;
