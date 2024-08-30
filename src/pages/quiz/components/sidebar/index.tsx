@@ -2,7 +2,7 @@ import { UseFieldArrayReturn, UseFormReturn } from "react-hook-form";
 import { DimensionButton, QuizSideContainer } from "./styles";
 import CollapsableMenu from "../collapsableMenu";
 import QuizGenerealConfiguration from "../general";
-import { teste } from "../..";
+import { QuizModel } from "../..";
 import QuizDimentionsConfig from "../dimensions";
 import ElementsSelection from "../elementsSelection";
 import { useState } from "react";
@@ -10,8 +10,8 @@ import Modal from "../../../../components/modal";
 import { dimensionModel } from "../../quiz.interface";
 
 export interface sideHeaderProps {
-  formMethods: UseFormReturn<teste>;
-  fieldsArray: UseFieldArrayReturn<teste, "dimentions", "id">;
+  formMethods: UseFormReturn<QuizModel>;
+  fieldsArray: UseFieldArrayReturn<QuizModel, "dimentions", "id">;
 }
 
 const QuizSideBar = ({ formMethods, fieldsArray }: sideHeaderProps) => {

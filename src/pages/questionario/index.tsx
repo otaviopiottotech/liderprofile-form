@@ -5,7 +5,7 @@ import { answersProps, questionInput } from "../quiz/quiz.interface";
 import QuizSelect from "./components/select";
 import QuizMultiSelect from "./components/multiSelect";
 import { NavLink } from "react-router-dom";
-import { teste } from "../quiz";
+import { QuizModel } from "../quiz";
 import Modal, { ModalTitle } from "../../components/modal";
 import ButtonComponent from "../../components/button";
 
@@ -23,18 +23,29 @@ interface quizInputs {
 const Ques = () => {
   const { handleSubmit, setValue } = useForm<quizInputs>();
 
-  const foudQ = useMemo<teste | undefined>(() => {
-    const q = localStorage.getItem("questionario1");
+  const foudQ = useMemo<QuizModel | undefined>(() => {
+    const href = window.location.search;
+    const params = new URLSearchParams(href);
+    const quizID = params.get("id");
 
-    if (q) {
-      const parseQuestion: teste = JSON.parse(q);
+    const getQuizList = localStorage.getItem("liderprofile-quiz/list");
 
-      parseQuestion.dimentions.forEach((e, i) => {
-        setValue(`dimentions.${i}`, e as any);
-      });
+    if (getQuizList) {
+      const quizFilter = (JSON.parse(getQuizList) as QuizModel[]).filter(
+        (e) => e.id === quizID
+      );
 
-      return parseQuestion;
+      if (quizFilter.length) {
+        const currentQuiz = quizFilter[0];
+
+        currentQuiz.dimentions.forEach((e, i) => {
+          setValue(`dimentions.${i}`, e as any);
+        });
+
+        return currentQuiz;
+      }
     }
+
     return undefined;
   }, []);
 

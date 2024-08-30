@@ -15,7 +15,8 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import ButtonComponent from "../../components/button";
 import { toast } from "sonner";
-import { NavLink } from "react-router-dom";
+import { useEffect } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 
 const validateAnswerBy = (answers: answersProps[]) => {
   const findCorrectAnswer = answers.filter((e) => e.correct_answer);
@@ -58,19 +59,17 @@ const createQuizValidation = yup.object().shape({
 });
 
 const QuizScreen = () => {
-  const formMethods = useForm<teste>({
-    defaultValues: localStorage.getItem("questionario1")
-      ? JSON.parse(localStorage.getItem("questionario1") as string)
-      : {
-          title: "Novo Questionário",
-          dimentions: [
-            {
-              _id: window.crypto.randomUUID(),
-              title: "Tópico 1",
-              color: getRandomColor(),
-            },
-          ],
+  const formMethods = useForm<QuizModel>({
+    defaultValues: {
+      title: "Novo Questionário",
+      dimentions: [
+        {
+          _id: window.crypto.randomUUID(),
+          title: "Tópico 1",
+          color: getRandomColor(),
         },
+      ],
+    },
     resolver: yupResolver(createQuizValidation) as any,
   });
 
@@ -79,10 +78,47 @@ const QuizScreen = () => {
     control: formMethods.control,
   });
 
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const href = window.location.search;
+    const params = new URLSearchParams(href);
+    const quizID = params.get("id");
+    if (quizID) {
+      const getQuizList = localStorage.getItem("liderprofile-quiz/list");
+
+      if (getQuizList) {
+        const quizFilter = (JSON.parse(getQuizList) as QuizModel[]).filter(
+          (e) => e.id === quizID
+        );
+
+        if (quizFilter.length) {
+          formMethods.setValue("id", quizFilter[0].id);
+          formMethods.setValue("dimentions", quizFilter[0].dimentions);
+          formMethods.setValue("title", quizFilter[0].title);
+        }
+      }
+    }
+  }, []);
+
   const onSubmit = formMethods.handleSubmit((data) => {
-    console.log(data);
-    localStorage.setItem("questionario1", JSON.stringify(data));
+    let liderProfileQuizList = localStorage.getItem("liderprofile-quiz/list");
+
+    if (!liderProfileQuizList) {
+      liderProfileQuizList = JSON.stringify([]);
+    }
+
+    const quizData = {
+      ...data,
+      id: window.crypto.randomUUID(),
+    };
+
+    localStorage.setItem(
+      "liderprofile-quiz/list",
+      JSON.stringify([...JSON.parse(liderProfileQuizList), quizData])
+    );
     toast.success("Questionário salvo com sucesso");
+    navigate("/");
   });
 
   const handleAddNewDimension = () => {
@@ -108,9 +144,9 @@ const QuizScreen = () => {
               display: "block",
               fontFamily: "'Poppins', sans-serif",
             }}
-            to={"/questinoario"}
+            to={"/"}
           >
-            Ver formulário
+            Voltar
           </NavLink>
           <ButtonComponent
             style={{ justifySelf: "center" }}
@@ -134,14 +170,15 @@ const QuizScreen = () => {
   );
 };
 
-export interface teste {
+export interface QuizModel {
   title: string;
+  id: string;
   dimentions: dimensionModel[];
 }
 
 interface testeC {
-  formMethods: UseFormReturn<teste>;
-  fieldMethod: UseFieldArrayReturn<teste, "dimentions", "id">;
+  formMethods: UseFormReturn<QuizModel>;
+  fieldMethod: UseFieldArrayReturn<QuizModel, "dimentions", "id">;
 }
 
 const Dimension = ({ formMethods, fieldMethod }: testeC) => {

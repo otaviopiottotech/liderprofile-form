@@ -16,6 +16,7 @@ const QuizGenerealConfiguration = ({
       <Input
         label="Nome do questionário"
         placeholder="Nome do questionário"
+        inputTheme="light"
         register={{ ...register("title") }}
       />
       {/* <Input
