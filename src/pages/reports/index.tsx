@@ -7,12 +7,20 @@ import {
 } from "../quiz/quiz.interface";
 import LiderProfileLogo from "../../assets/liderprofile_logo.jpg";
 import { format } from "date-fns";
+import ReportRange from "./components/range";
+import ReportDefaultItem from "./components/defaultItem";
 
 interface reportType {
   title: string;
   date: Date;
   dimentions: dimensionModel[];
   originalDimentions: dimensionModel[];
+}
+
+export interface reportItemProps {
+  answers: answersProps[];
+  questions: questionInput[];
+  data: questionInput;
 }
 
 const ReportScreen = () => {
@@ -26,6 +34,15 @@ const ReportScreen = () => {
 
     return undefined;
   }, []);
+
+  const quizGeralGrade = useMemo(() => {
+    const questionsTotal =
+      findQuiz?.dimentions.reduce((a, b) => a + Number(b.grade), 0) || 0;
+
+    const dimentionsTotal = findQuiz?.dimentions?.length || 1;
+
+    return questionsTotal / dimentionsTotal;
+  }, [findQuiz]);
 
   return (
     <ReportContainer>
@@ -47,15 +64,14 @@ const ReportScreen = () => {
 
         <div className="sub-header">
           <p>Realizado em: {format(findQuiz?.date as Date, "dd/MM/yyyy")}</p>
+          <p>Nota geral: {quizGeralGrade}</p>
         </div>
       </div>
 
       <main className="content">
         {findQuiz?.dimentions.map((e, i) => {
           const findRuleForUserGrade = e.rules?.filter((filter) => {
-            const func = filter.compare
-              .replaceAll("100", "101")
-              .replaceAll("N", e?.grade + "");
+            const func = filter.compare.replaceAll("N", e?.grade + "");
 
             return eval(func);
           });
@@ -102,60 +118,19 @@ const ReportScreen = () => {
                               <h3>{q.title}</h3>
                             </div>
 
-                            <ul>
-                              {q.answers?.map((answer) => {
-                                const findMarkedAnswer = (
-                                  e.questions as questionInput[]
-                                ).filter((filter) => filter?._id === q?._id);
-
-                                const hasMarked = () => {
-                                  let hasMarked = false;
-
-                                  if (!findMarkedAnswer.length) return false;
-
-                                  for (
-                                    let i = 0;
-                                    i <
-                                    (
-                                      findMarkedAnswer[0]
-                                        .answers as answersProps[]
-                                    )?.length;
-                                    i++
-                                  ) {
-                                    if (
-                                      answer._id ===
-                                      findMarkedAnswer[0].answers?.[i]._id
-                                    ) {
-                                      hasMarked = true;
-                                    }
-                                  }
-                                  return hasMarked;
-                                };
-
-                                return (
-                                  <li
-                                    className={
-                                      (hasMarked() && !answer.correct_answer
-                                        ? "wrong-answer"
-                                        : "") +
-                                      (answer.correct_answer
-                                        ? "right-answer"
-                                        : "")
-                                    }
-                                  >
-                                    <span>{answer.title}</span>
-
-                                    {hasMarked() ? (
-                                      <span className="marked-answer">
-                                        Resposta marcada
-                                      </span>
-                                    ) : (
-                                      ""
-                                    )}
-                                  </li>
-                                );
-                              })}
-                            </ul>
+                            {q.type === "range" ? (
+                              <ReportRange
+                                answers={q.answers as answersProps[]}
+                                data={q}
+                                questions={e.questions as questionInput[]}
+                              />
+                            ) : (
+                              <ReportDefaultItem
+                                answers={q.answers as answersProps[]}
+                                data={q}
+                                questions={e.questions as questionInput[]}
+                              />
+                            )}
                           </div>
                         );
                       })}

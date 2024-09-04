@@ -131,7 +131,7 @@ export const ReportContainer = styled.main`
             }
           }
 
-          ul {
+          .default-list {
             padding: 0 0 0 10px;
             display: grid;
             margin-top: 14px;

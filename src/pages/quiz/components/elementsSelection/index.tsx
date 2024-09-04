@@ -5,6 +5,7 @@ import { questionsType } from "../../quiz.interface";
 import { sideHeaderProps } from "../sidebar";
 import { PopOverRoot, PopOverTrigger } from "../../../../components/popOver";
 import { getRandomColor } from "../../../../utils/randomColor";
+import { RxSlider } from "react-icons/rx";
 
 interface elementsType {
   title: string;
@@ -22,6 +23,11 @@ export const elementsOptions: elementsType[] = [
     title: "Caixa de seleção",
     icon: <MdCheckBox />,
     type: "select",
+  },
+  {
+    title: "Range",
+    icon: <RxSlider />,
+    type: "range",
   },
   // {
   //   title: "Grupo",
