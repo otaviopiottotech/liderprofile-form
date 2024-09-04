@@ -13,6 +13,7 @@ import SelectComponent from "../select";
 import { elementsOptions } from "../../../quiz/components/elementsSelection";
 import { AiOutlineClose, AiOutlineRight } from "react-icons/ai";
 import { toast } from "sonner";
+import QuizRangeComponent from "../Range";
 
 const handleRemoveQuestion = (expression: string, nodeToRemove: string) => {
   const regex = new RegExp(
@@ -54,6 +55,7 @@ const ElementList = {
   multi_select: <MultiSelectComponent />,
   select: <SelectComponent />,
   group: <SelectComponent />,
+  range: <QuizRangeComponent />,
 };
 
 export const quizValue = 100;

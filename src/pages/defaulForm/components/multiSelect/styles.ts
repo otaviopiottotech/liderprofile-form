@@ -78,7 +78,7 @@ export const MultiSelectContainer = styled.div<multiSelectorProps>`
           }
         }
 
-        .subHeader {
+        .change-value-button {
           display: none !important;
         }
       `;
@@ -151,48 +151,6 @@ export const MultiSelectContainer = styled.div<multiSelectorProps>`
           color: ${({ theme }) => theme.colors.brand.white};
         }
       }
-    }
-  }
-
-  .subHeader {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    &:hover {
-      .edit {
-        opacity: 1;
-        max-width: 30px;
-        padding: 6px;
-      }
-    }
-
-    .edit {
-      max-width: 0px;
-      opacity: 0;
-      padding: 0;
-      transition: 0.3s;
-    }
-
-    span {
-      color: ${({ theme }) => theme.colors.brand.black};
-      ${({ theme }) => theme.font.p.extra_small};
-    }
-
-    button {
-      padding: 6px;
-      border: solid 1px ${({ theme }) => theme.colors.grayscale.gray_80};
-      color: ${({ theme }) => theme.colors.brand.black};
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    > div {
-      display: flex;
-      align-items: center;
-      gap: 4px;
     }
   }
 
@@ -277,4 +235,49 @@ export const EditValueModalContainer = styled.div`
   align-items: center;
   gap: 8px;
   padding: 0.3em;
+
+  button {
+    padding: 6px;
+    border: solid 1px ${({ theme }) => theme.colors.grayscale.gray_80};
+    color: ${({ theme }) => theme.colors.brand.black};
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+`;
+
+export const ChangeValueContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &:hover {
+    .edit {
+      opacity: 1;
+    }
+  }
+
+  .edit {
+    position: absolute;
+    opacity: 0;
+    right: -16px;
+    transition: 0.3s;
+  }
+
+  span {
+    color: ${({ theme }) => theme.colors.brand.black};
+    ${({ theme }) => theme.font.p.extra_small};
+  }
+
+  .value-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+
+    span {
+      color: ${({ theme }) => theme.colors.brand.black};
+      ${({ theme }) => theme.font.p.small};
+    }
+  }
 `;

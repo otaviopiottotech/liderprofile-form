@@ -9,7 +9,7 @@ export interface answersProps {
   id?: string;
 }
 
-export type questionsType = "multi_select" | "select" | "group";
+export type questionsType = "multi_select" | "select" | "group" | "range";
 
 export interface questionInput {
   code: string;

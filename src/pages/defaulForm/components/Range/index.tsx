@@ -1,33 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
 import Input from "../../../../components/input";
 import {
-  ChangeValueContainer,
-  EditValueModalContainer,
-  MultiSelectContainer,
-  ResponseOptionContainer,
-} from "./styles";
-import {
   FieldErrors,
   UseFormRegister,
   UseFormWatch,
   useFieldArray,
-  useForm,
   useFormContext,
 } from "react-hook-form";
-import {
-  AiOutlineClose,
-  AiOutlineDelete,
-  AiOutlineEdit,
-  AiOutlineRight,
-  AiOutlineSave,
-} from "react-icons/ai";
-import { FaCheck } from "react-icons/fa";
+import { AiOutlineClose, AiOutlineRight } from "react-icons/ai";
 import { answersProps, questionInput } from "../../../quiz/quiz.interface";
-import { PopOverRoot, PopOverTrigger } from "../../../../components/popOver";
 import { elementsProps, quizValue } from "../Group";
 import { toast } from "sonner";
+import { ChangeValueButton } from "../multiSelect";
+import { RangeAnswerContainer, RangeContainer } from "./styles";
 
-const MultiSelectComponent = ({
+const quizOptions = [
+  "Discordo Totalmente",
+  "Discordo",
+  "Neutro",
+  "Concordo",
+  "Concordo Totalmente",
+];
+
+const QuizRangeComponent = ({
   code,
   max_value = 0,
   onUpdateQuestion,
@@ -65,13 +60,23 @@ const MultiSelectComponent = ({
     }
   }, [max_value, child_key]);
 
-  const handleAddNewAnswer = () => {
+  const handleAddNewAnswer = (title?: string) => {
     const _id = window.crypto.randomUUID();
 
     append({
       _id,
+      title,
+      correct_answer: true,
     });
   };
+
+  useMemo(() => {
+    if (fields.length < 5) {
+      quizOptions.forEach((e) => {
+        handleAddNewAnswer(e);
+      });
+    }
+  }, []);
 
   const handleUpdateAnswer = (index: number, data: answersProps) => {
     update(index, data);
@@ -156,7 +161,7 @@ const MultiSelectComponent = ({
   }, [errors]);
 
   return (
-    <MultiSelectContainer
+    <RangeContainer
       $minimize={minimize}
       $remove={removeElement}
       $color={watch(`${child_key}.color`)}
@@ -168,7 +173,7 @@ const MultiSelectComponent = ({
           </div>
 
           <div className="title">
-            <h4>Múltipla Escolha:</h4>
+            <h4>Range:</h4>
 
             <h2 className="question-title">{watch(`${child_key}.title`)}</h2>
             <ChangeValueButton
@@ -238,16 +243,8 @@ const MultiSelectComponent = ({
             );
           })}
         </ul>
-
-        <button
-          type="button"
-          className="add-new-btn"
-          onClick={handleAddNewAnswer}
-        >
-          Adicionar Resposta
-        </button>
       </div>
-    </MultiSelectContainer>
+    </RangeContainer>
   );
 };
 
@@ -269,17 +266,12 @@ const ResponseOption = ({
   onUpdateValue,
   index,
   watch,
-  register,
-  remove,
   child_key,
   answers,
   max_value,
   question_value,
-  errors,
   data,
 }: responseProps) => {
-  const correct_answer = watch(`${child_key}.correct_answer`) || false;
-
   const answerValue = data?.correct_answer ? max_value : 0;
 
   const maxToSet = useMemo(() => {
@@ -300,13 +292,6 @@ const ResponseOption = ({
     }
     return calcMaxValue;
   }, [answers, question_value]);
-
-  const handleMarkAsCorrect = () => {
-    onUpdateValue(index, {
-      ...data,
-      correct_answer: !watch(`${child_key}.correct_answer`),
-    });
-  };
 
   useEffect(() => {
     if (answerValue) {
@@ -331,106 +316,20 @@ const ResponseOption = ({
   };
 
   return (
-    <ResponseOptionContainer>
-      <Input
-        placeholder="Opção"
-        register={{ ...register(`${child_key}.title`) }}
-        error={errors?.title?.message}
-      />
-      <ChangeValueButton
-        max_value={answerValue}
-        max_to_set={maxToSet}
-        has_manually_set={watch(`${child_key}.max_value_set_manually`)}
-        title={false}
-        onUpdateQuestion={handleUpdateQuestionWeight}
-      />
-      <button
-        type="button"
-        className={correct_answer ? "correct btn" : "btn"}
-        onClick={handleMarkAsCorrect}
-        title="Marcar resposta como correta"
-      >
-        {correct_answer && <FaCheck />}
-      </button>
-      <button type="button" className="delete-button" onClick={remove}>
-        <AiOutlineDelete />
-      </button>
-    </ResponseOptionContainer>
+    <RangeAnswerContainer $index={index as 0 | 1 | 2 | 3 | 4}>
+      <div className="answer-preview">
+        <ChangeValueButton
+          max_value={answerValue}
+          max_to_set={maxToSet}
+          has_manually_set={watch(`${child_key}.max_value_set_manually`)}
+          title={false}
+          onUpdateQuestion={handleUpdateQuestionWeight}
+        />
+      </div>
+
+      <p className="answer-title">{data?.title}</p>
+    </RangeAnswerContainer>
   );
 };
 
-interface props {
-  onUpdateQuestion(data: any): void;
-  max_value: number;
-  max_to_set: number;
-  has_manually_set?: boolean;
-  title?: boolean;
-}
-
-export const ChangeValueButton = ({
-  max_value,
-  max_to_set,
-  title = true,
-  has_manually_set,
-  onUpdateQuestion,
-}: props) => {
-  const [open, setOpen] = useState(false);
-
-  const { register, handleSubmit, setValue } = useForm<{ value: number }>();
-
-  useEffect(() => {
-    if (max_value) {
-      setValue("value", max_value);
-    }
-  }, [max_value]);
-
-  const sendNewValue = handleSubmit(({ value }) => {
-    if (!value) {
-      return;
-    }
-    if (Number(value) > max_to_set) {
-      window.alert("Não é possível adicionar esse valor");
-      return;
-    }
-    onUpdateQuestion({ max_value: value });
-    setOpen(false);
-  });
-
-  return (
-    <ChangeValueContainer className="change-value-button">
-      {title && <span>Peso da questão:</span>}
-
-      <PopOverRoot
-        open={open}
-        onOpenChange={() => setOpen(!open)}
-        trigger={
-          <PopOverTrigger className="value-container">
-            <span>
-              {max_value} {has_manually_set ? "*" : ""}
-            </span>
-            <div className={open ? "" : "edit"}>
-              <AiOutlineEdit />
-            </div>
-          </PopOverTrigger>
-        }
-      >
-        <EditValueModalContainer>
-          <Input
-            register={{ ...register("value") }}
-            max={max_to_set}
-            type="number"
-          />
-
-          <button type="button" onClick={sendNewValue}>
-            <AiOutlineSave />
-          </button>
-          <button type="button" onClick={() => setOpen(false)}>
-            <AiOutlineClose />
-          </button>
-        </EditValueModalContainer>
-      </PopOverRoot>
-    </ChangeValueContainer>
-  );
-};
-
-export default MultiSelectComponent;
+export default QuizRangeComponent;

@@ -8,6 +8,7 @@ import { NavLink } from "react-router-dom";
 import { QuizModel } from "../quiz";
 import Modal, { ModalTitle } from "../../components/modal";
 import ButtonComponent from "../../components/button";
+import QuizRange from "./components/Range";
 
 interface quizInputs {
   dimentions: {
@@ -141,6 +142,24 @@ const Ques = () => {
                     return (
                       <section key={e.code} className="question-container">
                         <QuizSelect
+                          title={e.title as string}
+                          answers={e.answers as answersProps[]}
+                          onChangeAnswer={(answers) =>
+                            handleUpdateQuestion(
+                              i,
+                              dimensionIndex,
+                              e.code,
+                              answers
+                            )
+                          }
+                        />
+                      </section>
+                    );
+                  }
+                  if (e.type === "range") {
+                    return (
+                      <section key={e.code} className="question-container">
+                        <QuizRange
                           title={e.title as string}
                           answers={e.answers as answersProps[]}
                           onChangeAnswer={(answers) =>
