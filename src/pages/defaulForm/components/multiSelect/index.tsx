@@ -22,10 +22,11 @@ import {
   AiOutlineSave,
 } from "react-icons/ai";
 import { FaCheck } from "react-icons/fa";
-import { answersProps, questionInput } from "../../../quiz/quiz.interface";
+import { answersProps, questionInput } from "../../../../models/quiz.interface";
 import { PopOverRoot, PopOverTrigger } from "../../../../components/popOver";
 import { elementsProps, quizValue } from "../Group";
 import { toast } from "sonner";
+import { getValueFromPath } from "../../../quiz";
 
 const MultiSelectComponent = ({
   code,
@@ -37,9 +38,6 @@ const MultiSelectComponent = ({
 }: Partial<elementsProps>) => {
   const [minimize, setMinimize] = useState(false);
   const [removeElement, setRemoveElement] = useState(false);
-  const [_a, dimensionIndex, _b, questionIndex] = (child_key as string)?.split(
-    "."
-  );
 
   const {
     register,
@@ -56,6 +54,12 @@ const MultiSelectComponent = ({
     name: `${child_key}.answers`,
     control,
   });
+
+  useMemo(() => {
+    setTimeout(() => {
+      setValue(`${child_key}.open`, true);
+    }, 100);
+  }, []);
 
   useEffect(() => {
     const { max_value_set_manually } = getValues(child_key as string);
@@ -139,10 +143,7 @@ const MultiSelectComponent = ({
   }, [fields, max_value]);
 
   useEffect(() => {
-    const questionErrors =
-      (errors as any)?.dimentions?.[dimensionIndex]?.questions?.[
-        questionIndex
-      ] || {};
+    const questionErrors = getValueFromPath(errors, child_key as string) || {};
 
     if (Object.keys(questionErrors)?.length) {
       for (const key in questionErrors) {
@@ -158,6 +159,7 @@ const MultiSelectComponent = ({
   return (
     <MultiSelectContainer
       $minimize={minimize}
+      $isOpen={watch(`${child_key}.open`)}
       $remove={removeElement}
       $color={watch(`${child_key}.color`)}
     >
@@ -201,11 +203,7 @@ const MultiSelectComponent = ({
       <Input
         label="Pergunta"
         register={{ ...register(`${child_key}.title`) }}
-        error={
-          (errors as any)?.dimentions?.[dimensionIndex]?.questions?.[
-            questionIndex
-          ]?.title?.message
-        }
+        error={getValueFromPath(errors, child_key as string)?.title?.message}
       />
 
       <div className="response">
@@ -229,9 +227,7 @@ const MultiSelectComponent = ({
                   onUpdateValue={handleUpdateAnswer}
                   max_value={answerMaxValue}
                   errors={
-                    (errors as any)?.dimentions?.[dimensionIndex]?.questions?.[
-                      questionIndex
-                    ]?.answers?.[i]
+                    getValueFromPath(errors, child_key as string)?.answers?.[i]
                   }
                 />
               </li>
@@ -302,6 +298,7 @@ const ResponseOption = ({
   }, [answers, question_value]);
 
   const handleMarkAsCorrect = () => {
+    const data = watch(`${child_key}`);
     onUpdateValue(index, {
       ...data,
       correct_answer: !watch(`${child_key}.correct_answer`),

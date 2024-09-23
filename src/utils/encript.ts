@@ -1,6 +1,5 @@
 const publicKey = import.meta.env.VITE_ENCRYPT_PUBLIC_KEY;
 const privateKey = import.meta.env.VITE_ENCRYPT_PRIVATE_KEY;
-const encodedMessage = import.meta.env.VITE_ENCODE_MESSAGES;
 
 export const generateDeriveKey = async (
   publicKeyJwk: JsonWebKey,
@@ -31,26 +30,32 @@ export const generateDeriveKey = async (
   return await window.crypto.subtle.deriveKey(
     { name: "ECDH", public: publicKey },
     privateKey,
-    { name: "AES-GCM", length: 256 },
+    { name: "AES-CTR", length: 256 },
     true,
     ["encrypt", "decrypt"]
   );
 };
 
-export const encrypt = async (data: string, deriveKey: CryptoKey) => {
-  const encodedData = new TextEncoder().encode(data);
+export const encryptWithCTR = async (data: string) => {
+  const deriveKey = await getDerivedKey();
 
-  const encryptData = await window.crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: new TextEncoder().encode(encodedMessage) },
+  const compressedData = new TextEncoder().encode(data);
+
+  const iv = window.crypto.getRandomValues(new Uint8Array(16));
+
+  const encryptedChunk = await window.crypto.subtle.encrypt(
+    { name: "AES-CTR", counter: iv, length: 128 },
     deriveKey,
-    encodedData
+    compressedData
   );
 
-  const uintArray = new Uint8Array(encryptData);
+  const uintArray = new Uint8Array(encryptedChunk);
 
-  const string = String.fromCharCode.apply(null, uintArray as any);
+  const combinedData = new Uint8Array(iv.length + uintArray.length);
+  combinedData.set(iv);
+  combinedData.set(uintArray, iv.length);
 
-  return btoa(string);
+  return btoa(String.fromCharCode.apply(null, combinedData as any));
 };
 
 export const importKeys = async () => {
@@ -77,4 +82,15 @@ export const importKeys = async () => {
   );
 
   return { publicK, privateK };
+};
+
+export const getDerivedKey = async () => {
+  const keys = await importKeys();
+
+  const exPrivate = await window.crypto.subtle.exportKey("jwk", keys.privateK);
+  const exPublic = await window.crypto.subtle.exportKey("jwk", keys.publicK);
+
+  const derivedKey = await generateDeriveKey(exPublic, exPrivate);
+
+  return derivedKey;
 };

@@ -8,19 +8,36 @@ import {
 export const FormGroupContainer = styled.section<multiSelectorProps>`
   width: 100%;
   max-height: 300vh;
-  overflow: hidden;
   background-color: ${({ theme }) => theme.colors.brand.white};
   border-radius: 4px;
-  box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.7);
   transition: 300ms;
+  border-left: 3px solid ${({ $color }) => $color};
+  position: relative;
 
-  ${({ $remove, $minimize }) => {
+  /* &.dragging-over {
+    &::after {
+      content: "";
+      background: rgba(0, 0, 0, 0.1);
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+  } */
+
+  ${({ $remove, $minimize, $isOpen }) => {
     if ($remove) {
       return css`
         max-height: ${$minimize ? "44px" : "200px"};
 
         animation: 200ms ${removeNewAnimation} linear forwards;
       `;
+    }
+
+    if ($isOpen) {
+      return css``;
     }
     return css`
       animation: 100ms ${createNewAnimation} linear forwards;
@@ -141,7 +158,8 @@ export const FormGroupContainer = styled.section<multiSelectorProps>`
       flex-direction: column;
 
       li + li {
-        & > div {
+        & > div,
+        & > section {
           margin-top: 1em;
         }
       }
@@ -173,14 +191,17 @@ export const EmptyQuizContainer = styled.section`
   }
 
   .button-list {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     padding: 0 2em;
     gap: 1em;
     justify-content: center;
     flex-wrap: wrap;
 
     li {
+      width: 100%;
       button {
+        width: 100%;
         background-color: ${({ theme }) => theme.colors.brand.white};
         padding: 1em;
         display: flex;

@@ -1,12 +1,7 @@
 import { useState } from "react";
-import { answersProps } from "../../../quiz/quiz.interface";
+import { answersProps } from "../../../../models/quiz.interface";
 import { QuizRangeContainer, QuizRangeItemContainer } from "./styles";
-
-interface quizMultiSelectProps {
-  answers: answersProps[];
-  title: string;
-  onChangeAnswer: (data: any) => void;
-}
+import { quizMultiSelectProps } from "../multiSelect";
 
 const QuizRange = ({
   answers,

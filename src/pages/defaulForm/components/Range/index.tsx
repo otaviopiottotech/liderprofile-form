@@ -8,11 +8,13 @@ import {
   useFormContext,
 } from "react-hook-form";
 import { AiOutlineClose, AiOutlineRight } from "react-icons/ai";
-import { answersProps, questionInput } from "../../../quiz/quiz.interface";
+import { answersProps, questionInput } from "../../../../models/quiz.interface";
 import { elementsProps, quizValue } from "../Group";
 import { toast } from "sonner";
 import { ChangeValueButton } from "../multiSelect";
 import { RangeAnswerContainer, RangeContainer } from "./styles";
+import ButtonComponent from "../../../../components/button";
+import { FaArrowRightArrowLeft } from "react-icons/fa6";
 
 const quizOptions = [
   "Discordo Totalmente",
@@ -32,6 +34,8 @@ const QuizRangeComponent = ({
 }: Partial<elementsProps>) => {
   const [minimize, setMinimize] = useState(false);
   const [removeElement, setRemoveElement] = useState(false);
+  const [invertOrder, setIvertOrder] = useState(false);
+
   const [_a, dimensionIndex, _b, questionIndex] = (child_key as string)?.split(
     "."
   );
@@ -51,6 +55,12 @@ const QuizRangeComponent = ({
     name: `${child_key}.answers`,
     control,
   });
+
+  useMemo(() => {
+    setTimeout(() => {
+      setValue(`${child_key}.open`, true);
+    }, 100);
+  }, []);
 
   useEffect(() => {
     const { max_value_set_manually } = getValues(child_key as string);
@@ -79,7 +89,9 @@ const QuizRangeComponent = ({
   }, []);
 
   const handleUpdateAnswer = (index: number, data: answersProps) => {
-    update(index, data);
+    const value = ((data.weight as number) * max_value) / 100;
+
+    update(index, { ...data, weight: value });
   };
 
   const handleUpdateQuestionWeight = (data: questionInput) => {
@@ -121,7 +133,7 @@ const QuizRangeComponent = ({
 
   const questionsMaxValue = useMemo(() => {
     let divideBy = fields.filter((e) => e?.correct_answer).length;
-    let calcMaxValue = max_value;
+    let calcMaxValue = 100;
 
     const aFieldHasMaxValue = fields.filter(
       (filter) => filter.max_value_set_manually
@@ -135,10 +147,10 @@ const QuizRangeComponent = ({
         0
       );
 
-      calcMaxValue = max_value - maxFieldsValue;
+      calcMaxValue = 100 - maxFieldsValue;
     }
 
-    const value = calcMaxValue / divideBy;
+    const value = calcMaxValue;
 
     return parseFloat(value.toFixed(2));
   }, [fields, max_value]);
@@ -164,6 +176,7 @@ const QuizRangeComponent = ({
     <RangeContainer
       $minimize={minimize}
       $remove={removeElement}
+      $isOpen={watch(`${child_key}.open`)}
       $color={watch(`${child_key}.color`)}
     >
       <div className="header">
@@ -216,9 +229,15 @@ const QuizRangeComponent = ({
       <div className="response">
         <ul>
           {fields.map((e, i) => {
+            let index = i;
+
+            if (invertOrder) {
+              index = fields.length - (i + 1);
+            }
+
             const answerMaxValue = e.max_value_set_manually
               ? (e?.weight as number)
-              : questionsMaxValue;
+              : questionsMaxValue / (index + 1);
 
             return (
               <li key={e._id + answerMaxValue}>
@@ -232,7 +251,7 @@ const QuizRangeComponent = ({
                   question_value={max_value}
                   data={e}
                   onUpdateValue={handleUpdateAnswer}
-                  max_value={answerMaxValue}
+                  max_value={parseFloat(answerMaxValue.toFixed(2))}
                   errors={
                     (errors as any)?.dimentions?.[dimensionIndex]?.questions?.[
                       questionIndex
@@ -243,6 +262,18 @@ const QuizRangeComponent = ({
             );
           })}
         </ul>
+
+        <div className="button-container">
+          <ButtonComponent
+            buttonStyles="primary"
+            buttonStylesType="outline"
+            buttonSize="small"
+            onClick={() => setIvertOrder(!invertOrder)}
+          >
+            <FaArrowRightArrowLeft />
+            Inverter
+          </ButtonComponent>
+        </div>
       </div>
     </RangeContainer>
   );
@@ -294,10 +325,10 @@ const ResponseOption = ({
   }, [answers, question_value]);
 
   useEffect(() => {
-    if (answerValue) {
+    if (max_value) {
       onUpdateValue(index, {
         ...data,
-        weight: answerValue,
+        weight: max_value,
       });
     } else {
       onUpdateValue(index, {
@@ -305,9 +336,11 @@ const ResponseOption = ({
         weight: 0,
       });
     }
-  }, [answerValue]);
+  }, [max_value]);
 
   const handleUpdateQuestionWeight = (value: questionInput) => {
+    const data = watch(`${child_key}`);
+
     onUpdateValue?.(index, {
       ...data,
       weight: Number(value.max_value),

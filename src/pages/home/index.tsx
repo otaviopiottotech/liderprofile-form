@@ -1,45 +1,21 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { HomeContainer, QuizButtonContainer } from "./styles";
 import { QuizModel } from "../quiz";
 import { NavLink } from "react-router-dom";
 import { AiOutlineDelete, AiOutlinePlus } from "react-icons/ai";
 import ButtonComponent from "../../components/button";
-import { IoShareSocialOutline } from "react-icons/io5";
 import { toast } from "sonner";
+import { useFetch } from "../../service/hooks/getQuery";
+import { api } from "../../service/api";
 
 const HomeScreen = () => {
   const [quizes, setQuizes] = useState<QuizModel[]>([]);
 
-  useEffect(() => {
-    const liderProfileQuizList = localStorage.getItem("liderprofile-quiz/list");
-    let oldQuiz = localStorage.getItem("questionario1");
-
-    if (liderProfileQuizList) {
-      if (oldQuiz) {
-        localStorage.setItem(
-          "liderprofile-quiz/list",
-          JSON.stringify([
-            ...JSON.parse(liderProfileQuizList),
-            JSON.parse(oldQuiz),
-          ])
-        );
-
-        setQuizes([...JSON.parse(liderProfileQuizList), JSON.parse(oldQuiz)]);
-
-        localStorage.removeItem("questionario1");
-      } else {
-        setQuizes(JSON.parse(liderProfileQuizList));
-      }
-    }
-  }, []);
-
-  const handleCopy = () => {
-    const liderProfileQuizList =
-      localStorage.getItem("liderprofile-quiz/list") || "";
-    navigator.clipboard.writeText(liderProfileQuizList as string);
-
-    toast.success("Questionários copiados para a área de transferência");
-  };
+  const { refetch } = useFetch<QuizModel[]>("/quiz", ["quiz"], {
+    onSuccess: (data) => {
+      setQuizes(data);
+    },
+  });
 
   return (
     <HomeContainer>
@@ -50,17 +26,13 @@ const HomeScreen = () => {
           <NavLink className="create-quiz-button" to={"/criar-questionario"}>
             <AiOutlinePlus /> Criar Questionário
           </NavLink>
-
-          <ButtonComponent buttonStyles="text" onClick={handleCopy}>
-            <IoShareSocialOutline />
-          </ButtonComponent>
         </div>
 
         <ul>
           {quizes.length > 0 ? (
             quizes.map((e, i) => (
               <li key={i}>
-                <QuizButton data={e} onRemove={setQuizes} />
+                <QuizButton data={e} onRemove={refetch} />
               </li>
             ))
           ) : (
@@ -74,24 +46,18 @@ const HomeScreen = () => {
 
 interface props {
   data: QuizModel;
-  onRemove(data: QuizModel[]): void;
+  onRemove(): void;
 }
 
 const QuizButton = ({ data, onRemove }: props) => {
-  const deleteQuiz = () => {
-    const liderProfileQuizList: QuizModel[] = JSON.parse(
-      localStorage.getItem("liderprofile-quiz/list") as string
-    );
-
-    const removeItemFromStorage = liderProfileQuizList.filter(
-      (e) => e.id !== data.id
-    );
-
-    onRemove(removeItemFromStorage);
-    localStorage.setItem(
-      "liderprofile-quiz/list",
-      JSON.stringify(removeItemFromStorage)
-    );
+  const deleteQuiz = async () => {
+    try {
+      await api.delete(`/quiz/${data.id}`);
+      onRemove();
+      toast.success("Formulário deletado com sucesso");
+    } catch (error) {
+      toast.success("erro ao deletar formulário");
+    }
   };
 
   return (

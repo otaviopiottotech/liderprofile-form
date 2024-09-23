@@ -4,6 +4,7 @@ export interface multiSelectorProps {
   $color: string;
   $minimize: boolean;
   $remove: boolean;
+  $isOpen?: boolean;
 }
 
 export const createNewAnimation = keyframes`
@@ -40,19 +41,44 @@ export const MultiSelectContainer = styled.div<multiSelectorProps>`
   max-height: 300vh;
   border: ${({ $color }) => `2px solid ${$color}`};
   box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
   padding: 8px;
   border-radius: 12px;
   transition: 0.3s;
   transform-origin: top;
+  position: relative;
+  margin-left: 2em;
 
-  ${({ $remove, $minimize }) => {
+  &::before {
+    content: "╰";
+    width: 1px;
+    font-size: 1.5em;
+    display: flex;
+    align-items: flex-end;
+    line-height: 0px;
+    justify-content: center;
+    background: linear-gradient(
+      180deg,
+      rgba(211, 213, 213, 1) 0%,
+      rgba(211, 213, 213, 1) 99%,
+      rgba(255, 255, 255, 0) 0%
+    );
+    color: ${({ theme }) => theme.colors.grayscale.gray_20};
+    position: absolute;
+    left: -20px;
+    top: -100vh;
+    bottom: 70%;
+  }
+
+  ${({ $remove, $minimize, $isOpen }) => {
     if ($remove) {
       return css`
         max-height: ${$minimize ? "44px" : "200px"};
-
         animation: 200ms ${removeNewAnimation} linear forwards;
       `;
+    }
+
+    if ($isOpen) {
+      return css``;
     }
     return css`
       animation: 100ms ${createNewAnimation} linear forwards;

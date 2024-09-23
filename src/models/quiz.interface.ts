@@ -4,12 +4,18 @@ export interface answersProps {
   max_value_set_manually?: boolean;
   value?: number;
   weight?: number;
+  marked?: boolean;
   type?: "%" | "nota";
   _id: string;
   id?: string;
 }
 
-export type questionsType = "multi_select" | "select" | "group" | "range";
+export type questionsType =
+  | "multi_select"
+  | "select"
+  | "group"
+  | "range"
+  | "track";
 
 export interface questionInput {
   code: string;
@@ -22,6 +28,8 @@ export interface questionInput {
   color: string;
   type: questionsType;
   _id: string;
+  open?: boolean;
+  questions?: questionInput[];
 }
 
 export interface rulesModel {
@@ -37,6 +45,7 @@ export interface dimensionModel {
   total?: number;
   calc?: string;
   color: string;
+  open?: boolean;
   _id: string;
   grade?: number;
   rules?: rulesModel[];

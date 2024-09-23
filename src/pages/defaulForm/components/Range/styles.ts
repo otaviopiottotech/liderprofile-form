@@ -13,6 +13,13 @@ export const RangeContainer = styled(MultiSelectContainer)`
       flex-direction: row;
     }
   }
+
+  .button-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1em;
+  }
 `;
 
 export const rangeAnswerBorderColor = {

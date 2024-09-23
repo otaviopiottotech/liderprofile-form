@@ -1,7 +1,6 @@
 import { useFormContext, useFieldArray } from "react-hook-form";
-import { EmptyQuizContainer, FormGroupContainer } from "./styles";
+import { TrackGroupContainer } from "./styles";
 import { DragEvent, cloneElement, useEffect, useMemo, useState } from "react";
-import MultiSelectComponent from "../multiSelect";
 import {
   dimensionModel,
   questionInput,
@@ -9,12 +8,14 @@ import {
 } from "../../../../models/quiz.interface";
 import { getRandomColor } from "../../../../utils/randomColor";
 import { extractPatterns } from "../../../../utils/extractPattern";
-import SelectComponent from "../select";
 import { elementsOptions } from "../../../quiz/components/elementsSelection";
-import { AiOutlineClose, AiOutlineRight } from "react-icons/ai";
+import { AiOutlineClose, AiOutlineEdit, AiOutlineRight } from "react-icons/ai";
 import { toast } from "sonner";
-import QuizRangeComponent from "../Range";
-import TrackComponent from "../track";
+import { EmptyQuizContainer } from "../Group/styles";
+import { ComponentsList, elementsProps } from "../Group";
+import Modal from "../../../../components/modal";
+import QuizDimentionsConfig from "../../../quiz/components/dimensions";
+import { getValueFromPath } from "../../../quiz";
 
 const handleRemoveQuestion = (expression: string, nodeToRemove: string) => {
   const regex = new RegExp(
@@ -52,51 +53,43 @@ const handleRemoveQuestion = (expression: string, nodeToRemove: string) => {
   return sanitized;
 };
 
-export const ComponentsList = {
-  multi_select: <MultiSelectComponent />,
-  select: <SelectComponent />,
-  group: <SelectComponent />,
-  range: <QuizRangeComponent />,
-  track: <TrackComponent />,
-};
-
-export const quizValue = 100;
-
-export interface formGroupProps {
+interface formGroupProps {
   child_key: string;
   removeQuestion: () => void;
 }
 
-export interface elementsProps {
-  code: string;
-  index: number;
-  max_value: number;
-  onUpdateQuestion(data: any): void;
-  removeQuestion: () => void;
-  max_to_set: number;
-  child_key: string;
-  questions: questionInput[];
-}
-
-const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
+const TrackComponent = ({
+  child_key,
+  removeQuestion,
+  max_value,
+  code,
+}: Partial<formGroupProps & elementsProps>) => {
+  const [open, setOpen] = useState(false);
   const [removeElement, setRemoveElement] = useState(false);
   const [minimize, setMinimize] = useState(false);
-  const [_a, dimensionIndex] = (child_key as string)?.split(".");
   const [dragOverClassName, setDragOverClassName] = useState("");
+
+  const formContext = useFormContext<{
+    [x: string]: dimensionModel;
+  }>();
 
   const {
     watch,
     control,
     setValue,
     formState: { errors },
-  } = useFormContext<{
-    [x: string]: dimensionModel;
-  }>();
+  } = formContext;
 
   const { fields, append, remove, update } = useFieldArray({
     name: `${child_key}.questions`,
     control,
   });
+
+  useMemo(() => {
+    setTimeout(() => {
+      setValue(`${child_key}.open`, true);
+    }, 100);
+  }, []);
 
   const handleAddNewQuestion = (type: questionsType) => {
     let calculationString = watch(`${child_key}.calc`);
@@ -104,17 +97,10 @@ const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
     const code = `P${fields.length + 1}`;
     const _id = window.crypto.randomUUID();
 
-    let title = "";
-
-    if (type === "track") {
-      title = "SubTópico " + (fields.length + 1);
-    }
-
     append({
       color: getRandomColor(),
       code,
       _id,
-      title,
       type,
     });
 
@@ -171,7 +157,7 @@ const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
 
   const questionsMaxValue = useMemo(() => {
     let divideBy = fields.length;
-    let calcMaxValue = quizValue;
+    let calcMaxValue = max_value;
 
     const aFieldHasMaxValue = fields.filter(
       (filter) => filter.max_value_set_manually
@@ -185,11 +171,11 @@ const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
         0
       );
 
-      calcMaxValue = quizValue - maxFieldsValue;
+      calcMaxValue = (max_value as number) - maxFieldsValue;
     }
 
-    return Math.trunc(calcMaxValue / divideBy);
-  }, [fields]);
+    return Math.trunc((calcMaxValue as number) / divideBy);
+  }, [fields, max_value]);
 
   const formulaVisualizer = useMemo(() => {
     let calculationString = watch(`${child_key}.calc`);
@@ -213,10 +199,6 @@ const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
 
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
     let eventData = event.dataTransfer.getData("new-element");
-
-    if ((event.target as any)?.className?.includes?.("track-container")) {
-      return;
-    }
     handleAddNewQuestion(eventData as questionsType);
     setDragOverClassName("");
   };
@@ -224,10 +206,7 @@ const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
   const onDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragOverClassName("dragging-over");
-
-    if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = "move";
-    }
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
   };
 
   const onDragExit = () => {
@@ -243,7 +222,7 @@ const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
   };
 
   useEffect(() => {
-    const questionErrors = (errors as any)?.dimentions?.[dimensionIndex] || {};
+    const questionErrors = getValueFromPath(errors, child_key as string) || {};
 
     if (Object.keys(questionErrors)?.length) {
       for (const key in questionErrors) {
@@ -257,30 +236,50 @@ const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
   }, [errors]);
 
   return (
-    <FormGroupContainer
+    <TrackGroupContainer
       $minimize={minimize}
       $remove={removeElement}
       $color={watch(`${child_key}.color`)}
+      $isOpen={watch(`${child_key}.open`)}
       onDragOver={onDragOver}
       onDragLeave={onDragExit}
+      className={dragOverClassName + " track-container"}
       onDrop={onDrop}
-      className={dragOverClassName}
     >
+      <Modal open={open} onOpenChange={() => setOpen(!open)}>
+        <QuizDimentionsConfig
+          formMethods={formContext}
+          data={watch("")}
+          child_key={child_key as string}
+        />
+      </Modal>
       <section className="section-header">
         <div className="left-side">
-          <div className="group-info">
-            <h4>Nome</h4>
-            <h3> {watch(`${child_key}.title`)}</h3>
-          </div>
+          <section>
+            <p className="mark">{code}</p>
+          </section>
+          <section>
+            <div className="group-info">
+              <h4>Nome</h4>
+              <h3> {watch(`${child_key}.title`)}</h3>
+            </div>
 
-          <div className="formula">
-            <h6>Fórmula:</h6>
+            <div className="formula">
+              <h6>Fórmula:</h6>
 
-            <div dangerouslySetInnerHTML={{ __html: formulaVisualizer }} />
-          </div>
+              <div dangerouslySetInnerHTML={{ __html: formulaVisualizer }} />
+            </div>
+          </section>
         </div>
 
         <div className="right-side">
+          <button
+            type="button"
+            className="minimize-button"
+            onClick={() => setOpen(true)}
+          >
+            <AiOutlineEdit />
+          </button>
           <button
             type="button"
             className="minimize-button"
@@ -330,7 +329,7 @@ const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
           <EmptyQuiz onSelectNewElement={handleAddNewQuestion} />
         </div>
       )}
-    </FormGroupContainer>
+    </TrackGroupContainer>
   );
 };
 
@@ -350,7 +349,7 @@ const EmptyQuiz = ({ onSelectNewElement }: emptyQuizProps) => {
 
       <div className="button-list">
         {elementsOptions
-          .filter((e) => e.type !== "group")
+          .filter((e) => e.type !== "group" && e.type !== "track")
           .map((e, i) => (
             <li key={i}>
               <button
@@ -367,4 +366,4 @@ const EmptyQuiz = ({ onSelectNewElement }: emptyQuizProps) => {
   );
 };
 
-export default FormGroup;
+export default TrackComponent;

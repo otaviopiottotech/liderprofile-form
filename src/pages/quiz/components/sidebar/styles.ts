@@ -2,12 +2,22 @@ import styled from "styled-components";
 import ButtonComponent from "../../../../components/button";
 
 export const QuizSideContainer = styled.section`
-  padding: 2px 10px;
   display: flex;
   flex-direction: column;
-  background: ${({ theme }) => theme.colors.grayscale.gray_90};
+  position: relative;
+  background: ${({ theme }) => theme.colors.brand.dark_blue};
 
   .sidebar-header {
+    background: ${({ theme }) => theme.colors.brand.dark_blue};
+    margin: -2px -10px;
+    padding: 12px 8px;
+
+    img {
+      max-width: 70px;
+    }
+  }
+
+  .sidebar-subheader {
     padding: 12px 8px;
 
     h5 {
@@ -17,6 +27,7 @@ export const QuizSideContainer = styled.section`
   }
 
   fieldset {
+    margin-top: 1em;
     border-radius: 8px;
 
     legend {
@@ -31,12 +42,26 @@ export const QuizSideContainer = styled.section`
     }
   }
 `;
+interface dimensionButtonProps {
+  $color: string;
+}
 
-export const DimensionButton = styled(ButtonComponent)`
+export const DimensionButton = styled(ButtonComponent)<dimensionButtonProps>`
+  width: 100%;
   color: ${({ theme }) => theme.colors.brand.white};
   ${({ theme }) => theme.font.p.normal};
-  justify-content: flex-start;
+  justify-content: space-between;
   border-radius: 0;
+
+  border-left: 2px solid ${({ $color }) => $color};
+
+  & + button {
+    border-top: 1px solid ${({ theme }) => theme.colors.grayscale.gray_80};
+  }
+
+  svg {
+    color: ${({ theme }) => theme.colors.grayscale.gray_30};
+  }
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.grayscale.gray_80};

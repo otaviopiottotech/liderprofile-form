@@ -1,11 +1,13 @@
 import { MdCheckBox, MdLibraryAddCheck } from "react-icons/md";
 import { ElementsSelectionContainer, SelectGroupContainer } from "./styles";
 import { DragEvent, ReactNode, useState } from "react";
-import { questionsType } from "../../quiz.interface";
+import { questionsType } from "../../../../models/quiz.interface";
 import { sideHeaderProps } from "../sidebar";
 import { PopOverRoot, PopOverTrigger } from "../../../../components/popOver";
 import { getRandomColor } from "../../../../utils/randomColor";
 import { RxSlider } from "react-icons/rx";
+import { FaIndent } from "react-icons/fa";
+import { AiOutlineBars } from "react-icons/ai";
 
 interface elementsType {
   title: string;
@@ -29,20 +31,21 @@ export const elementsOptions: elementsType[] = [
     icon: <RxSlider />,
     type: "range",
   },
-  // {
-  //   title: "Grupo",
-  //   icon: <FaIndent />,
-  //   type: "group",
-  // },
+  {
+    title: "SubTópico",
+    icon: <FaIndent />,
+    type: "track",
+  },
+  {
+    title: "Tópico",
+    icon: <AiOutlineBars />,
+    type: "group",
+  },
 ];
 
 const ElementsSelection = ({ fieldsArray, formMethods }: sideHeaderProps) => {
   return (
     <ElementsSelectionContainer>
-      <div className="elements-header">
-        <span>Elementos:</span>
-      </div>
-
       <ul className="elements-list">
         {elementsOptions.map((e, i) => (
           <li key={i}>
@@ -84,7 +87,7 @@ const ElementComponent = ({
       append({
         _id,
         color: getRandomColor(),
-        title: "Grupo " + (dimensionFields.length + 1),
+        title: "Tópico " + (dimensionFields.length + 1),
       });
     }
 
@@ -94,7 +97,7 @@ const ElementComponent = ({
       append({
         _id,
         color: getRandomColor(),
-        title: "Grupo " + (dimensionFields.length + 1),
+        title: "Tópico " + (dimensionFields.length + 1),
       });
       return;
     }
@@ -103,8 +106,12 @@ const ElementComponent = ({
 
     let calculationString = watch(`dimentions.${i}.calc`);
     const code = `P${questionList.length + 1}`;
-
     const _id = window.crypto.randomUUID();
+    let title = "";
+
+    if (type === "track") {
+      title = "SubTópico " + (questionList.length + 1);
+    }
 
     if (!calculationString) {
       calculationString = code;
@@ -112,13 +119,14 @@ const ElementComponent = ({
       calculationString = `${calculationString}+${code}`;
     }
 
-    setValue(`dimentions.${i}.questions`, [
+    setValue(`dimentions.${i}.questions` as any, [
       ...questionList,
       {
         color: getRandomColor(),
         code,
         _id,
         type,
+        title,
       },
     ]);
     setValue(`dimentions.${i}.calc`, calculationString);

@@ -1,6 +1,4 @@
 import styled from "styled-components";
+import { DimensionConfigContainer } from "../dimensions/styles";
 
-export const GeneralConfigurationContainer = styled.section`
-  display: grid;
-  gap: 1em;
-`;
+export const GeneralConfigurationContainer = styled(DimensionConfigContainer)``;

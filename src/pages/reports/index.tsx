@@ -1,39 +1,53 @@
-import { useMemo } from "react";
+import { cloneElement, useMemo, useState } from "react";
 import { ReportContainer } from "./styles";
 import {
   answersProps,
   dimensionModel,
   questionInput,
-} from "../quiz/quiz.interface";
+} from "../../models/quiz.interface";
 import LiderProfileLogo from "../../assets/liderprofile_logo.jpg";
 import { format } from "date-fns";
 import ReportRange from "./components/range";
 import ReportDefaultItem from "./components/defaultItem";
+import { useFetch } from "../../service/hooks/getQuery";
+import { decryptWithCTR } from "../../utils/decrypt";
+import { reportElements } from "./reportElements";
 
 interface reportType {
   title: string;
-  date: Date;
+  created_at: Date;
   dimentions: dimensionModel[];
+  encrypted_data: string;
   originalDimentions: dimensionModel[];
 }
 
 export interface reportItemProps {
   answers: answersProps[];
   questions: questionInput[];
-  data: questionInput;
+  data: questionInput | dimensionModel | undefined;
 }
 
 const ReportScreen = () => {
-  const findQuiz: reportType | undefined = useMemo(() => {
-    const quiz = localStorage.getItem("quiz-done");
+  const [findQuiz, setFindQuiz] = useState<reportType>();
 
-    if (quiz) {
-      console.log(JSON.parse(quiz));
-      return JSON.parse(quiz);
-    }
+  const href = window.location.search;
+  const params = new URLSearchParams(href);
+  const quizID = params.get("id");
 
-    return undefined;
-  }, []);
+  useFetch<reportType[]>(`/answer/${quizID}`, [quizID, "answer"], {
+    onSuccess: async (data) => {
+      if (data?.length) {
+        const [{ encrypted_data }] = data;
+        const dimentions = await decryptWithCTR(encrypted_data);
+
+        setFindQuiz({
+          ...data[0],
+          ...JSON.parse(dimentions),
+        });
+      }
+    },
+    enabled: !!quizID,
+  });
 
   const quizGeralGrade = useMemo(() => {
     const questionsTotal =
@@ -41,7 +55,7 @@ const ReportScreen = () => {
 
     const dimentionsTotal = findQuiz?.dimentions?.length || 1;
 
-    return questionsTotal / dimentionsTotal;
+    return (questionsTotal / dimentionsTotal).toFixed(2);
   }, [findQuiz]);
 
   return (
@@ -63,7 +77,11 @@ const ReportScreen = () => {
         <h1>{findQuiz?.title}</h1>
 
         <div className="sub-header">
-          <p>Realizado em: {format(findQuiz?.date as Date, "dd/MM/yyyy")}</p>
+          <p>
+            Realizado em:{" "}
+            {findQuiz?.created_at &&
+              format(findQuiz?.created_at as Date, "dd/MM/yyyy")}
+          </p>
           <p>Nota geral: {quizGeralGrade}</p>
         </div>
       </div>
@@ -90,7 +108,7 @@ const ReportScreen = () => {
 
                 <div className="right-side">
                   <h3>Sua nota</h3>
-                  <h1>{e?.grade}</h1>
+                  <h1>{e?.grade?.toFixed(2)}</h1>
                 </div>
               </div>
 
@@ -112,18 +130,22 @@ const ReportScreen = () => {
                   return (
                     <div key={item._id}>
                       {(item.questions as questionInput[]).map((q) => {
+                        const questionElement = (reportElements as any)?.[
+                          q?.type
+                        ];
+
                         return (
                           <div key={q._id} className="question">
                             <div className="question-header">
                               <h3>{q.title}</h3>
                             </div>
 
-                            {q.type === "range" ? (
-                              <ReportRange
-                                answers={q.answers as answersProps[]}
-                                data={q}
-                                questions={e.questions as questionInput[]}
-                              />
+                            {questionElement ? (
+                              cloneElement(questionElement, {
+                                answers: q.answers,
+                                data: q,
+                                questions: e.questions,
+                              })
                             ) : (
                               <ReportDefaultItem
                                 answers={q.answers as answersProps[]}
@@ -145,7 +167,11 @@ const ReportScreen = () => {
 
       <footer>
         <div className="page-indicator">
-          <p>Realizado em: {format(findQuiz?.date as Date, "dd/MM/yyyy")}</p>
+          <p>
+            Realizado em:{" "}
+            {findQuiz?.created_at &&
+              format(findQuiz?.created_at as Date, "dd/MM/yyyy")}
+          </p>
         </div>
 
         <section className="advise">

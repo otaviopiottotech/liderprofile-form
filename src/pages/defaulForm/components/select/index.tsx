@@ -17,7 +17,7 @@ import {
   MultiSelectContainer,
   ResponseOptionContainer,
 } from "../multiSelect/styles";
-import { answersProps, questionInput } from "../../../quiz/quiz.interface";
+import { answersProps, questionInput } from "../../../../models/quiz.interface";
 import { ChangeValueButton } from "../multiSelect";
 import { elementsProps, quizValue } from "../Group";
 import { toast } from "sonner";
@@ -51,6 +51,12 @@ const SelectComponent = ({
     name: `${child_key}.answers`,
     control,
   });
+
+  useMemo(() => {
+    setTimeout(() => {
+      setValue(`${child_key}.open`, true);
+    }, 100);
+  }, []);
 
   const updateAnswerWeight = (weight: number) => {
     const answersIfWeight = fields.filter((e) => !!e.weight);
@@ -182,6 +188,7 @@ const SelectComponent = ({
     <MultiSelectContainer
       $minimize={minimize}
       $remove={removeElement}
+      $isOpen={watch(`${child_key}.open`)}
       $color={watch(`${child_key}.color`)}
     >
       <div className="header">

@@ -12,7 +12,7 @@ import {
   ModalTitle,
   ModalTriggerClose,
 } from "../../../../components/modal";
-import { dimensionModel, rulesModel } from "../../quiz.interface";
+import { dimensionModel, rulesModel } from "../../../../models/quiz.interface";
 import TextArea from "../../../../components/textarea";
 import ButtonComponent from "../../../../components/button";
 import { Select, SelectItem } from "../../../../components/select";
@@ -144,7 +144,7 @@ interface ruleProps {
   data: rulesModel;
 }
 
-const RuleComponent = ({
+export const RuleComponent = ({
   onRemove,
   setValue,
   register,

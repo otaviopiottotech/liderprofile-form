@@ -1,13 +1,11 @@
 import { Select, SelectItem } from "../../../../components/select";
-import { answersProps } from "../../../quiz/quiz.interface";
+import { quizMultiSelectProps } from "../multiSelect";
 
-interface quizSelectProps {
-  title: string;
-  answers: answersProps[];
-  onChangeAnswer: (data: any) => void;
-}
-
-const QuizSelect = ({ answers, onChangeAnswer, title }: quizSelectProps) => {
+const QuizSelect = ({
+  answers,
+  onChangeAnswer,
+  title,
+}: quizMultiSelectProps) => {
   const handleSelectAnswer = (value: string) => {
     const findAnswer = answers.filter((e) => e.title === value);
     onChangeAnswer(findAnswer);

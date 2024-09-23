@@ -1,5 +1,5 @@
 import { reportItemProps } from "../..";
-import { answersProps, questionInput } from "../../../quiz/quiz.interface";
+import { answersProps, questionInput } from "../../../../models/quiz.interface";
 
 const ReportDefaultItem = ({ answers, questions, data }: reportItemProps) => {
   return (

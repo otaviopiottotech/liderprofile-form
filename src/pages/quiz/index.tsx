@@ -6,59 +6,42 @@ import {
   useForm,
 } from "react-hook-form";
 import QuizSideBar from "./components/sidebar";
-import { QuizContainer, QuizDock } from "./styles";
-import { answersProps, dimensionModel } from "./quiz.interface";
+import { QuizContainer } from "./styles";
+import {
+  dimensionModel,
+  questionsType,
+  rulesModel,
+} from "../../models/quiz.interface";
 import FormGroup from "../defaulForm/components/Group";
 import { getRandomColor } from "../../utils/randomColor";
-import { FaPlus } from "react-icons/fa";
-import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import ButtonComponent from "../../components/button";
 import { toast } from "sonner";
-import { useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { encryptWithCTR } from "../../utils/encript";
+import { useFetch } from "../../service/hooks/getQuery";
+import { decryptWithCTR } from "../../utils/decrypt";
+import { useMutationQuery } from "../../service/hooks/useMutationQuery";
+import { createQuizValidation } from "./validation";
+import QuizHeader from "./components/quizHeader";
+import { elementsOptions } from "./components/elementsSelection";
+import { EmptyQuizContainer } from "../defaulForm/components/Group/styles";
 
-const validateAnswerBy = (answers: answersProps[]) => {
-  const findCorrectAnswer = answers.filter((e) => e.correct_answer);
+export function getValueFromPath(obj: any, path: string) {
+  const pathArray = path.split(".");
 
-  return !!findCorrectAnswer.length;
-};
+  return pathArray.reduce((acc, key) => {
+    if (!acc) return undefined;
 
-const createQuizValidation = yup.object().shape({
-  dimentions: yup
-    .array()
-    .of(
-      yup.object().shape({
-        title: yup.string().required("O título é obrigatório"),
-        questions: yup
-          .array()
-          .of(
-            yup.object().shape({
-              title: yup.string().required("O título é obrigatório"),
-              answers: yup
-                .array()
-                .of(
-                  yup.object().shape({
-                    title: yup
-                      .string()
-                      .required("O título da resposta é obrigatório"),
-                  })
-                )
-                .test({
-                  name: "oneMustBeCorrect",
-                  test: (arr: any) => validateAnswerBy(arr),
-                  message: "Marque pelo menos uma questão como correta",
-                  exclusive: false,
-                }),
-            })
-          )
-          .min(1, "Adicione ao menos uma pergunta"),
-      })
-    )
-    .min(1),
-});
+    const index = parseInt(key, 10);
+    return !isNaN(index) ? acc[index] : acc[key];
+  }, obj);
+}
 
 const QuizScreen = () => {
+  const href = window.location.search;
+  const params = new URLSearchParams(href);
+  const quizID = params.get("id");
+
   const formMethods = useForm<QuizModel>({
     defaultValues: {
       title: "Novo Questionário",
@@ -80,91 +63,64 @@ const QuizScreen = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const href = window.location.search;
-    const params = new URLSearchParams(href);
-    const quizID = params.get("id");
-    if (quizID) {
-      const getQuizList = localStorage.getItem("liderprofile-quiz/list");
+  useFetch<QuizModel[]>(`/quiz/${quizID}`, [quizID], {
+    onSuccess: async (data) => {
+      if (data?.length) {
+        const [{ id, title, encrypted_data }] = data;
 
-      if (getQuizList) {
-        const quizFilter = (JSON.parse(getQuizList) as QuizModel[]).filter(
-          (e) => e.id === quizID
-        );
+        const dimentions = await decryptWithCTR(encrypted_data);
 
-        if (quizFilter.length) {
-          formMethods.setValue("id", quizFilter[0].id);
-          formMethods.setValue("dimentions", quizFilter[0].dimentions);
-          formMethods.setValue("title", quizFilter[0].title);
-        }
+        formMethods.setValue("id", id);
+        formMethods.setValue("dimentions", JSON.parse(dimentions));
+        formMethods.setValue("title", title);
       }
-    }
-  }, []);
-
-  const onSubmit = formMethods.handleSubmit((data) => {
-    let liderProfileQuizList = localStorage.getItem("liderprofile-quiz/list");
-
-    if (!liderProfileQuizList) {
-      liderProfileQuizList = JSON.stringify([]);
-    }
-
-    const quizData = {
-      ...data,
-      id: window.crypto.randomUUID(),
-    };
-
-    localStorage.setItem(
-      "liderprofile-quiz/list",
-      JSON.stringify([...JSON.parse(liderProfileQuizList), quizData])
-    );
-    toast.success("Questionário salvo com sucesso");
-    navigate("/");
+    },
+    enabled: !!quizID,
   });
 
-  const handleAddNewDimension = () => {
-    const _id = window.crypto.randomUUID();
-    fieldMethod.append({
-      _id,
-      color: getRandomColor(),
-      title: "Tópico " + (fieldMethod.fields.length + 1),
+  const { mutate: onSaveQuiz } = useMutationQuery(
+    `/quiz`,
+    quizID ? "put" : "post"
+  );
+
+  const onSubmit = formMethods.handleSubmit(async (data) => {
+    const dataToJSON = JSON.stringify(data.dimentions);
+
+    console.log(data);
+
+    return;
+    const encrypted_data = await encryptWithCTR(dataToJSON);
+
+    const quizData = {
+      title: data.title,
+      encrypted_data,
+      id: quizID,
+      description: "",
+    };
+
+    onSaveQuiz(quizData, {
+      onSuccess: () => {
+        toast.success("Salvo com sucesso");
+        toast.success("Questionário salvo com sucesso");
+        navigate("/");
+      },
+      onError: (error) => {
+        console.log(error);
+        toast.error("Ocorreu um erro");
+      },
     });
-  };
+  });
 
   return (
     <QuizContainer>
+      <QuizHeader
+        fieldMethod={fieldMethod}
+        formMethods={formMethods}
+        onSubmit={onSubmit}
+      />
       <QuizSideBar formMethods={formMethods} fieldsArray={fieldMethod} />
       <section className="quiz-form-content">
         <Dimension formMethods={formMethods} fieldMethod={fieldMethod} />
-        <QuizDock>
-          <NavLink
-            style={{
-              textDecoration: "none",
-              color: "black",
-              padding: "10px 12px",
-              display: "block",
-              fontFamily: "'Poppins', sans-serif",
-            }}
-            to={"/"}
-          >
-            Voltar
-          </NavLink>
-          <ButtonComponent
-            style={{ justifySelf: "center" }}
-            buttonStyles="text"
-            onClick={handleAddNewDimension}
-          >
-            <FaPlus /> Adicionar Tópico
-          </ButtonComponent>
-
-          <ButtonComponent
-            style={{ justifySelf: "flex-end" }}
-            onClick={onSubmit}
-            buttonStyles="confirm"
-            disabled={!fieldMethod?.fields?.length}
-          >
-            Salvar Questionário
-          </ButtonComponent>
-        </QuizDock>
       </section>
     </QuizContainer>
   );
@@ -172,8 +128,11 @@ const QuizScreen = () => {
 
 export interface QuizModel {
   title: string;
+  description: string;
   id: string;
+  rules?: rulesModel[];
   dimentions: dimensionModel[];
+  encrypted_data: string;
 }
 
 interface testeC {
@@ -182,25 +141,70 @@ interface testeC {
 }
 
 const Dimension = ({ formMethods, fieldMethod }: testeC) => {
-  const { fields, remove } = fieldMethod;
+  const { append, fields, remove } = fieldMethod;
   const { watch } = formMethods;
+
+  const handleAddNewQuestion = () => {
+    const _id = window.crypto.randomUUID();
+    let title = "Tópico " + (fields.length + 1);
+    append({
+      color: getRandomColor(),
+      _id,
+      title,
+    });
+  };
 
   return (
     <section className="dimensionsList">
       <div className="header">
-        <h1>{watch("title")}</h1>
+        <h1>{watch("title") as any}</h1>
+      </div>
+      <section className="topic-list">
+        <FormProvider {...formMethods}>
+          {fields.length ? (
+            fields.map((e, i) => (
+              <FormGroup
+                key={e._id}
+                removeQuestion={() => remove(i)}
+                child_key={`dimentions.${i}`}
+              />
+            ))
+          ) : (
+            <EmptyQuiz onSelectNewElement={handleAddNewQuestion} />
+          )}
+        </FormProvider>
+      </section>
+    </section>
+  );
+};
+
+interface emptyQuizProps {
+  onSelectNewElement(): void;
+}
+
+const EmptyQuiz = ({ onSelectNewElement }: emptyQuizProps) => {
+  return (
+    <EmptyQuizContainer>
+      <div className="title">
+        <p>
+          Nenhum Tópico adicionado, arraste ou selecione um tópico para começar
+          a editar
+        </p>
       </div>
 
-      <FormProvider {...formMethods}>
-        {fields.map((e, i) => (
-          <FormGroup
-            key={e._id}
-            removeQuestion={() => remove(i)}
-            child_key={`dimentions.${i}`}
-          />
-        ))}
-      </FormProvider>
-    </section>
+      <div className="button-list">
+        {elementsOptions
+          .filter((e) => e.type === "group")
+          .map((e, i) => (
+            <li key={i}>
+              <button type="button" onClick={() => onSelectNewElement()}>
+                {e.icon}
+                <span>{e.title}</span>
+              </button>
+            </li>
+          ))}
+      </div>
+    </EmptyQuizContainer>
   );
 };
 

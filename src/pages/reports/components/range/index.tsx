@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { reportItemProps } from "../..";
-import { answersProps, questionInput } from "../../../quiz/quiz.interface";
+import { answersProps, questionInput } from "../../../../models/quiz.interface";
 import { ReportRangeContainer } from "./styles";
 
 const ReportRange = ({ answers, questions, data }: reportItemProps) => {
@@ -47,7 +47,7 @@ const ReportRange = ({ answers, questions, data }: reportItemProps) => {
                 (answer.correct_answer ? "right-answer" : "")
               }
             >
-              <span>{answer.weight}</span>
+              <span>{answer.weight?.toFixed(2)}</span>
 
               {hasMarked() ? <span className="marked-answer" /> : ""}
             </li>
