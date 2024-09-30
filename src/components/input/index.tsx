@@ -8,8 +8,9 @@ import {
 } from "react";
 import { InputContainer } from "./styles";
 
-export type inputStyle = "primary" | "secondary";
+export type inputStyle = "primary" | "secondary" | "text";
 export type inputTheme = "dark" | "light";
+export type inputSize = "sm" | "normal" | "l";
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   affix?: {
@@ -17,6 +18,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     suffix?: ReactNode;
   };
   inputStyle?: inputStyle;
+  inputSize?: inputSize;
   label?: string;
   error?: string;
   register?: any;
@@ -29,6 +31,7 @@ const Input = forwardRef(
     {
       affix,
       inputStyle = "primary",
+      inputSize = "normal",
       label,
       required = false,
       error,
@@ -59,12 +62,13 @@ const Input = forwardRef(
 
     return (
       <InputContainer
-        $inputStyle={inputStyle}
-        $required={required}
         $error={error}
-        $inputTheme={inputTheme}
-        $disabled={props.disabled}
+        $required={required}
         style={containerStyle}
+        $inputSize={inputSize}
+        $inputTheme={inputTheme}
+        $inputStyle={inputStyle}
+        $disabled={props.disabled}
         className="input-component-container"
       >
         {label && <label className="input-label">{label}</label>}

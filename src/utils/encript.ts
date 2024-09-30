@@ -1,3 +1,5 @@
+import Pako from "pako";
+
 const publicKey = import.meta.env.VITE_ENCRYPT_PUBLIC_KEY;
 const privateKey = import.meta.env.VITE_ENCRYPT_PRIVATE_KEY;
 
@@ -39,7 +41,8 @@ export const generateDeriveKey = async (
 export const encryptWithCTR = async (data: string) => {
   const deriveKey = await getDerivedKey();
 
-  const compressedData = new TextEncoder().encode(data);
+  // Compress the data
+  const compressedData = Pako.deflate(data);
 
   const iv = window.crypto.getRandomValues(new Uint8Array(16));
 

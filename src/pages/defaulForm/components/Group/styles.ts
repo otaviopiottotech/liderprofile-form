@@ -15,18 +15,6 @@ export const FormGroupContainer = styled.section<multiSelectorProps>`
   border-left: 3px solid ${({ $color }) => $color};
   position: relative;
 
-  /* &.dragging-over {
-    &::after {
-      content: "";
-      background: rgba(0, 0, 0, 0.1);
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
-    }
-  } */
-
   ${({ $remove, $minimize, $isOpen }) => {
     if ($remove) {
       return css`
@@ -49,6 +37,10 @@ export const FormGroupContainer = styled.section<multiSelectorProps>`
       return css`
         max-height: 60px;
 
+        .element-content.element-content {
+          max-height: 60px;
+        }
+
         .header {
           .left-side {
             .title {
@@ -69,6 +61,13 @@ export const FormGroupContainer = styled.section<multiSelectorProps>`
       `;
     }
   }}
+
+
+.element-content {
+    max-height: 300vh;
+    transition: 0.3s;
+    overflow: hidden;
+  }
 
   .section-header {
     padding: 1em;

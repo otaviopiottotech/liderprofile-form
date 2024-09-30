@@ -1,28 +1,40 @@
 import styled from "styled-components";
 
 export const QuestionarioContainer = styled.section`
-  width: 100%;
-  max-width: 800px;
-  background-color: ${({ theme }) => theme.colors.brand.white};
-  margin: 20px auto;
-  border-radius: 16px;
-  padding: 1em;
+  .header-container {
+    display: flex;
+    justify-content: center;
+    background-color: ${({ theme }) => theme.colors.brand.orange};
+  }
 
   .header {
-    padding: 0 0 20px 0;
-    border-bottom: solid 1px ${({ theme }) => theme.colors.grayscale.gray_05};
+    width: 100%;
+    max-width: 800px;
+    padding: 5em 0 10em 0;
 
     h1 {
-      color: ${({ theme }) => theme.colors.grayscale.gray_80};
-      ${({ theme }) => theme.font.h3};
+      color: ${({ theme }) => theme.colors.brand.white};
+      ${({ theme }) => theme.font.h2};
       font-weight: 600;
+    }
+
+    p {
+      margin-top: 1em;
+      color: ${({ theme }) => theme.colors.brand.white};
+      ${({ theme }) => theme.font.p.small};
     }
   }
 
   form {
+    width: 100%;
+    max-width: 800px;
     display: grid;
+    background-color: ${({ theme }) => theme.colors.brand.white};
+    margin: 20px auto;
+    border-radius: 16px;
+    padding: 2em;
     gap: 3em;
-    margin-top: 40px;
+    margin-top: -60px;
 
     .group-section {
       .group-header-container {
@@ -47,7 +59,7 @@ export const QuestionarioContainer = styled.section`
     }
 
     .question-container {
-      margin-top: 1em;
+      margin-top: 4em;
     }
 
     .buttons-section {

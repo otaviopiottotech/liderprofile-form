@@ -27,6 +27,7 @@ import { PopOverRoot, PopOverTrigger } from "../../../../components/popOver";
 import { elementsProps, quizValue } from "../Group";
 import { toast } from "sonner";
 import { getValueFromPath } from "../../../quiz";
+import { MdLibraryAddCheck } from "react-icons/md";
 
 const MultiSelectComponent = ({
   code,
@@ -163,86 +164,95 @@ const MultiSelectComponent = ({
       $remove={removeElement}
       $color={watch(`${child_key}.color`)}
     >
-      <div className="header">
-        <div className="left-side">
-          <div className="mark">
-            <p>{code}</p>
+      <section className="element-content">
+        <div className="header">
+          <div className="left-side">
+            <div className="mark">
+              <p>{code}</p>
+
+              <div className="type-container">
+                <MdLibraryAddCheck />
+                <h4>Múltipla Escolha</h4>
+              </div>
+            </div>
+
+            <div className="title">
+              {/* <h2 className="question-title">{watch(`${child_key}.title`)}</h2> */}
+              <ChangeValueButton
+                max_value={max_value as number}
+                max_to_set={maxToSet}
+                onUpdateQuestion={handleUpdateQuestionWeight}
+              />
+            </div>
           </div>
 
-          <div className="title">
-            <h4>Múltipla Escolha:</h4>
+          <div className="right-side">
+            <button
+              type="button"
+              className="minimize-button"
+              onClick={() => setMinimize(!minimize)}
+            >
+              <AiOutlineRight />
+            </button>
 
-            <h2 className="question-title">{watch(`${child_key}.title`)}</h2>
-            <ChangeValueButton
-              max_value={max_value as number}
-              max_to_set={maxToSet}
-              onUpdateQuestion={handleUpdateQuestionWeight}
-            />
+            <button
+              type="button"
+              className="remove-button"
+              onClick={handleRemoveQuestion}
+            >
+              <AiOutlineClose />
+            </button>
           </div>
         </div>
 
-        <div className="right-side">
-          <button
-            type="button"
-            className="minimize-button"
-            onClick={() => setMinimize(!minimize)}
-          >
-            <AiOutlineRight />
-          </button>
+        <Input
+          label="Pergunta"
+          inputSize="l"
+          style={{ fontWeight: 600 }}
+          register={{ ...register(`${child_key}.title`) }}
+          error={getValueFromPath(errors, child_key as string)?.title?.message}
+        />
+
+        <div className="response">
+          <ul>
+            {fields.map((e, i) => {
+              const answerMaxValue = e.max_value_set_manually
+                ? (e?.weight as number)
+                : questionsMaxValue;
+
+              return (
+                <li key={e._id + answerMaxValue}>
+                  <ResponseOption
+                    index={i}
+                    answers={fields}
+                    register={register}
+                    watch={watch}
+                    child_key={`${child_key}.answers.${i}`}
+                    remove={() => remove(i)}
+                    question_value={max_value}
+                    data={e}
+                    onUpdateValue={handleUpdateAnswer}
+                    max_value={answerMaxValue}
+                    errors={
+                      getValueFromPath(errors, child_key as string)?.answers?.[
+                        i
+                      ]
+                    }
+                  />
+                </li>
+              );
+            })}
+          </ul>
 
           <button
             type="button"
-            className="remove-button"
-            onClick={handleRemoveQuestion}
+            className="add-new-btn"
+            onClick={handleAddNewAnswer}
           >
-            <AiOutlineClose />
+            Adicionar Resposta
           </button>
         </div>
-      </div>
-
-      <Input
-        label="Pergunta"
-        register={{ ...register(`${child_key}.title`) }}
-        error={getValueFromPath(errors, child_key as string)?.title?.message}
-      />
-
-      <div className="response">
-        <ul>
-          {fields.map((e, i) => {
-            const answerMaxValue = e.max_value_set_manually
-              ? (e?.weight as number)
-              : questionsMaxValue;
-
-            return (
-              <li key={e._id + answerMaxValue}>
-                <ResponseOption
-                  index={i}
-                  answers={fields}
-                  register={register}
-                  watch={watch}
-                  child_key={`${child_key}.answers.${i}`}
-                  remove={() => remove(i)}
-                  question_value={max_value}
-                  data={e}
-                  onUpdateValue={handleUpdateAnswer}
-                  max_value={answerMaxValue}
-                  errors={
-                    getValueFromPath(errors, child_key as string)?.answers?.[i]
-                  }
-                />
-              </li>
-            );
-          })}
-        </ul>
-
-        <button
-          type="button"
-          className="add-new-btn"
-          onClick={handleAddNewAnswer}
-        >
-          Adicionar Resposta
-        </button>
-      </div>
+      </section>
     </MultiSelectContainer>
   );
 };
@@ -395,7 +405,7 @@ export const ChangeValueButton = ({
 
   return (
     <ChangeValueContainer className="change-value-button">
-      {title && <span>Peso da questão:</span>}
+      {title && <span>Peso:</span>}
 
       <PopOverRoot
         open={open}

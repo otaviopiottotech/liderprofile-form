@@ -15,6 +15,7 @@ import { AiOutlineClose, AiOutlineRight } from "react-icons/ai";
 import { toast } from "sonner";
 import QuizRangeComponent from "../Range";
 import TrackComponent from "../track";
+import Input from "../../../../components/input";
 
 const handleRemoveQuestion = (expression: string, nodeToRemove: string) => {
   const regex = new RegExp(
@@ -88,6 +89,7 @@ const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
     watch,
     control,
     setValue,
+    register,
     formState: { errors },
   } = useFormContext<{
     [x: string]: dimensionModel;
@@ -266,70 +268,79 @@ const FormGroup = ({ child_key, removeQuestion }: formGroupProps) => {
       onDrop={onDrop}
       className={dragOverClassName}
     >
-      <section className="section-header">
-        <div className="left-side">
-          <div className="group-info">
-            <h4>Nome</h4>
-            <h3> {watch(`${child_key}.title`)}</h3>
+      <section className="element-content">
+        <section className="section-header">
+          <div className="left-side">
+            <div className="group-info">
+              <h4>Nome</h4>
+              {/* <h3> {watch(`${child_key}.title`)}</h3> */}
+              <Input
+                inputStyle="text"
+                inputSize="l"
+                style={{ fontWeight: 600, padding: 0, borderRadius: 0 }}
+                containerStyle={{ borderRadius: 0 }}
+                register={{ ...register(`${child_key}.title`) }}
+              />
+            </div>
+
+            <div className="formula">
+              <h6>Fórmula:</h6>
+
+              <div dangerouslySetInnerHTML={{ __html: formulaVisualizer }} />
+            </div>
           </div>
 
-          <div className="formula">
-            <h6>Fórmula:</h6>
+          <div className="right-side">
+            <button
+              type="button"
+              className="minimize-button"
+              onClick={() => setMinimize(!minimize)}
+            >
+              <AiOutlineRight />
+            </button>
 
-            <div dangerouslySetInnerHTML={{ __html: formulaVisualizer }} />
+            <button
+              type="button"
+              className="remove-button"
+              onClick={handleRemoveDimension}
+            >
+              <AiOutlineClose />
+            </button>
           </div>
-        </div>
+        </section>
 
-        <div className="right-side">
-          <button
-            type="button"
-            className="minimize-button"
-            onClick={() => setMinimize(!minimize)}
-          >
-            <AiOutlineRight />
-          </button>
+        {fields.length ? (
+          <div className="form-questions-container">
+            <ul>
+              {fields.map((e, i) => {
+                const answerMaxValue = e.max_value_set_manually
+                  ? (e?.weight as number)
+                  : questionsMaxValue;
 
-          <button
-            type="button"
-            className="remove-button"
-            onClick={handleRemoveDimension}
-          >
-            <AiOutlineClose />
-          </button>
-        </div>
+                return (
+                  <li key={e._id + answerMaxValue}>
+                    {cloneElement(ComponentsList[e.type], {
+                      code: "P" + (i + 1),
+                      index: i,
+                      max_value: e.max_value_set_manually
+                        ? (e?.max_value as number)
+                        : questionsMaxValue,
+                      removeQuestion: () => remove(i),
+                      child_key: `${child_key}.questions.${i}`,
+                      onUpdateQuestion: (data: any) =>
+                        handleUpdateQuestion(i, data),
+                    })}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : (
+          <div className="form-questions-container">
+            <EmptyQuiz onSelectNewElement={handleAddNewQuestion} />
+          </div>
+        )}
       </section>
-
-      {fields.length ? (
-        <div className="form-questions-container">
-          <ul>
-            {fields.map((e, i) => {
-              const answerMaxValue = e.max_value_set_manually
-                ? (e?.weight as number)
-                : questionsMaxValue;
-
-              return (
-                <li key={e._id + answerMaxValue}>
-                  {cloneElement(ComponentsList[e.type], {
-                    code: "P" + (i + 1),
-                    index: i,
-                    max_value: e.max_value_set_manually
-                      ? (e?.max_value as number)
-                      : questionsMaxValue,
-                    removeQuestion: () => remove(i),
-                    child_key: `${child_key}.questions.${i}`,
-                    onUpdateQuestion: (data: any) =>
-                      handleUpdateQuestion(i, data),
-                  })}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ) : (
-        <div className="form-questions-container">
-          <EmptyQuiz onSelectNewElement={handleAddNewQuestion} />
-        </div>
-      )}
     </FormGroupContainer>
   );
 };

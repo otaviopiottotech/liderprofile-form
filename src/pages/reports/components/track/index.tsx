@@ -21,7 +21,7 @@ const ReportTrack = ({ data, answers, questions }: reportItemProps) => {
 
   return (
     <ReportTrackContainer>
-      <section className="topic-section">
+      <section className="track-section">
         <div className="section-header">
           <div className="left-side">
             <h3>Traço</h3>

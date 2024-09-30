@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { FormGroupContainer } from "../Group/styles";
 
 export const TrackGroupContainer = styled(FormGroupContainer)`
@@ -42,6 +42,16 @@ export const TrackGroupContainer = styled(FormGroupContainer)`
     bottom: 70%;
   }
 
+  ${({ $minimize }) => {
+    if ($minimize) {
+      return css`
+        max-height: unset !important;
+        .element-content.element-content {
+          border-radius: 10px;
+        }
+      `;
+    }
+  }}
   .section-header {
     border-radius: 10px 10px 0 0;
     .left-side {

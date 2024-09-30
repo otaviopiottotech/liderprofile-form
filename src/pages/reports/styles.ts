@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 export const ReportContainer = styled.main`
   width: 100%;
-  max-width: 700px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 1em;
   background-color: ${({ theme }) => theme.colors.brand.white};
@@ -33,52 +33,77 @@ export const ReportContainer = styled.main`
   }
 
   .report-header {
+    display: flex;
+    gap: 2em;
+    justify-content: space-between;
     margin-bottom: 3em;
     margin: 0 -1em;
     padding: 2em 3em 5em 3em;
     background-color: ${({ theme }) => theme.colors.brand.orange};
 
-    h2 {
-      color: ${({ theme }) => theme.colors.brand.white};
-      ${({ theme }) => theme.font.p.large};
+    .left-side {
+      h2 {
+        color: ${({ theme }) => theme.colors.brand.white};
+        ${({ theme }) => theme.font.p.normal};
+      }
+
+      h1 {
+        color: ${({ theme }) => theme.colors.brand.white};
+        ${({ theme }) => theme.font.p.large_bold};
+        font-weight: 600;
+      }
     }
 
-    h1 {
-      color: ${({ theme }) => theme.colors.brand.white};
-      ${({ theme }) => theme.font.h1};
-      font-weight: 600;
-    }
-
-    .sub-header {
-      p {
+    .right-side {
+      span {
         color: ${({ theme }) => theme.colors.brand.white};
         ${({ theme }) => theme.font.p.extra_small};
+      }
+
+      h1 {
+        color: ${({ theme }) => theme.colors.brand.white};
+        ${({ theme }) => theme.font.h1};
+        font-weight: 900;
       }
     }
   }
 
   .content {
-    margin-top: 5em;
-
     .topic-section {
+      margin-top: 10em;
       padding: 3em 2em;
-      & + .topic-section {
-        border-top: 1px solid ${({ theme }) => theme.colors.grayscale.gray_10};
-      }
 
       .section-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        position: relative;
 
         h3 {
           color: ${({ theme }) => theme.colors.grayscale.gray_60};
           ${({ theme }) => theme.font.p.small};
+          position: relative;
+          z-index: 1;
         }
+
+        .topic-subtitle {
+          color: ${({ theme }) => theme.colors.grayscale.gray_05};
+          ${({ theme }) => theme.font.p.small};
+          opacity: 0.5;
+          font-size: 10em;
+          font-weight: 900;
+          position: absolute;
+          top: -180%;
+          pointer-events: none;
+          z-index: 0;
+        }
+
         h2 {
           color: ${({ theme }) => theme.colors.brand.orange};
           ${({ theme }) => theme.font.h1};
           font-weight: 600;
+          position: relative;
+          z-index: 1;
         }
 
         h1 {
@@ -87,11 +112,15 @@ export const ReportContainer = styled.main`
           ${({ theme }) => theme.font.h3};
           font-size: 3em;
           font-weight: 900;
+          position: relative;
+          z-index: 1;
         }
       }
 
       .about-user-grade {
         margin-top: 1em;
+        position: relative;
+        z-index: 1;
 
         .grade-item {
           span {
@@ -107,10 +136,10 @@ export const ReportContainer = styled.main`
       }
 
       .questions {
-        margin-top: 2em;
-
         .questions-section-header {
+          margin: 6em 0 4em;
           p {
+            text-align: center;
             color: ${({ theme }) => theme.colors.grayscale.gray_40};
             ${({ theme }) => theme.font.p.extra_small};
           }
@@ -120,6 +149,8 @@ export const ReportContainer = styled.main`
           padding: 1em;
 
           & + .question {
+            margin-top: 4em;
+            padding: 5em 1em 1em;
             border-top: 1px solid
               ${({ theme }) => theme.colors.grayscale.gray_10};
           }

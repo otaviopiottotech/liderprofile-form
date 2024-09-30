@@ -246,89 +246,91 @@ const TrackComponent = ({
       className={dragOverClassName + " track-container"}
       onDrop={onDrop}
     >
-      <Modal open={open} onOpenChange={() => setOpen(!open)}>
-        <QuizDimentionsConfig
-          formMethods={formContext}
-          data={watch("")}
-          child_key={child_key as string}
-        />
-      </Modal>
-      <section className="section-header">
-        <div className="left-side">
-          <section>
-            <p className="mark">{code}</p>
-          </section>
-          <section>
-            <div className="group-info">
-              <h4>Nome</h4>
-              <h3> {watch(`${child_key}.title`)}</h3>
-            </div>
+      <section className="element-content">
+        <Modal open={open} onOpenChange={() => setOpen(!open)}>
+          <QuizDimentionsConfig
+            formMethods={formContext}
+            data={watch("")}
+            child_key={child_key as string}
+          />
+        </Modal>
+        <section className="section-header">
+          <div className="left-side">
+            <section>
+              <p className="mark">{code}</p>
+            </section>
+            <section>
+              <div className="group-info">
+                <h4>Nome</h4>
+                <h3> {watch(`${child_key}.title`)}</h3>
+              </div>
 
-            <div className="formula">
-              <h6>Fórmula:</h6>
+              <div className="formula">
+                <h6>Fórmula:</h6>
 
-              <div dangerouslySetInnerHTML={{ __html: formulaVisualizer }} />
-            </div>
-          </section>
-        </div>
+                <div dangerouslySetInnerHTML={{ __html: formulaVisualizer }} />
+              </div>
+            </section>
+          </div>
 
-        <div className="right-side">
-          <button
-            type="button"
-            className="minimize-button"
-            onClick={() => setOpen(true)}
-          >
-            <AiOutlineEdit />
-          </button>
-          <button
-            type="button"
-            className="minimize-button"
-            onClick={() => setMinimize(!minimize)}
-          >
-            <AiOutlineRight />
-          </button>
+          <div className="right-side">
+            <button
+              type="button"
+              className="minimize-button"
+              onClick={() => setOpen(true)}
+            >
+              <AiOutlineEdit />
+            </button>
+            <button
+              type="button"
+              className="minimize-button"
+              onClick={() => setMinimize(!minimize)}
+            >
+              <AiOutlineRight />
+            </button>
 
-          <button
-            type="button"
-            className="remove-button"
-            onClick={handleRemoveDimension}
-          >
-            <AiOutlineClose />
-          </button>
-        </div>
+            <button
+              type="button"
+              className="remove-button"
+              onClick={handleRemoveDimension}
+            >
+              <AiOutlineClose />
+            </button>
+          </div>
+        </section>
+
+        {fields.length ? (
+          <div className="form-questions-container">
+            <ul>
+              {fields.map((e, i) => {
+                const answerMaxValue = e.max_value_set_manually
+                  ? (e?.weight as number)
+                  : questionsMaxValue;
+
+                return (
+                  <li key={e._id + answerMaxValue}>
+                    {cloneElement(ComponentsList[e.type], {
+                      code: "P" + (i + 1),
+                      index: i,
+                      max_value: e.max_value_set_manually
+                        ? (e?.max_value as number)
+                        : questionsMaxValue,
+                      removeQuestion: () => remove(i),
+                      child_key: `${child_key}.questions.${i}`,
+                      onUpdateQuestion: (data: any) =>
+                        handleUpdateQuestion(i, data),
+                    })}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : (
+          <div className="form-questions-container">
+            <EmptyQuiz onSelectNewElement={handleAddNewQuestion} />
+          </div>
+        )}
       </section>
-
-      {fields.length ? (
-        <div className="form-questions-container">
-          <ul>
-            {fields.map((e, i) => {
-              const answerMaxValue = e.max_value_set_manually
-                ? (e?.weight as number)
-                : questionsMaxValue;
-
-              return (
-                <li key={e._id + answerMaxValue}>
-                  {cloneElement(ComponentsList[e.type], {
-                    code: "P" + (i + 1),
-                    index: i,
-                    max_value: e.max_value_set_manually
-                      ? (e?.max_value as number)
-                      : questionsMaxValue,
-                    removeQuestion: () => remove(i),
-                    child_key: `${child_key}.questions.${i}`,
-                    onUpdateQuestion: (data: any) =>
-                      handleUpdateQuestion(i, data),
-                  })}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ) : (
-        <div className="form-questions-container">
-          <EmptyQuiz onSelectNewElement={handleAddNewQuestion} />
-        </div>
-      )}
     </TrackGroupContainer>
   );
 };

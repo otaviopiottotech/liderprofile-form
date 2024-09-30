@@ -21,6 +21,7 @@ import { answersProps, questionInput } from "../../../../models/quiz.interface";
 import { ChangeValueButton } from "../multiSelect";
 import { elementsProps, quizValue } from "../Group";
 import { toast } from "sonner";
+import { MdCheckBox } from "react-icons/md";
 
 const SelectComponent = ({
   code,
@@ -191,93 +192,98 @@ const SelectComponent = ({
       $isOpen={watch(`${child_key}.open`)}
       $color={watch(`${child_key}.color`)}
     >
-      <div className="header">
-        <div className="left-side">
-          <div className="mark">
-            <p>{code}</p>
+      <section className="element-content">
+        <div className="header">
+          <div className="left-side">
+            <div className="mark">
+              <p>{code}</p>
+              <div className="type-container">
+                <MdCheckBox />
+                <h4>Caixa de seleção</h4>
+              </div>
+            </div>
+
+            <div className="title">
+              {/* <h2 className="question-title">{watch(`${child_key}.title`)}</h2> */}
+
+              <ChangeValueButton
+                max_value={max_value as number}
+                max_to_set={maxToSet}
+                onUpdateQuestion={handleUpdateQuestionWeight}
+              />
+            </div>
           </div>
 
-          <div className="title">
-            <h4>Caixa de seleção:</h4>
+          <div className="right-side">
+            <button
+              type="button"
+              className="minimize-button"
+              onClick={() => setMinimize(!minimize)}
+            >
+              <AiOutlineRight />
+            </button>
 
-            <h2 className="question-title">{watch(`${child_key}.title`)}</h2>
-
-            <ChangeValueButton
-              max_value={max_value as number}
-              max_to_set={maxToSet}
-              onUpdateQuestion={handleUpdateQuestionWeight}
-            />
+            <button
+              type="button"
+              className="remove-button"
+              onClick={handleRemoveQuestion}
+            >
+              <AiOutlineClose />
+            </button>
           </div>
         </div>
 
-        <div className="right-side">
-          <button
-            type="button"
-            className="minimize-button"
-            onClick={() => setMinimize(!minimize)}
-          >
-            <AiOutlineRight />
-          </button>
+        <Input
+          label="Pergunta"
+          inputSize="l"
+          style={{ fontWeight: 600 }}
+          register={{ ...register(`${child_key}.title`) }}
+          error={
+            (errors as any)?.dimentions?.[dimensionIndex]?.questions?.[
+              questionIndex
+            ]?.title?.message
+          }
+        />
+
+        <div className="response">
+          <ul>
+            {fields.map((e, i) => {
+              const answerMaxValue = e.max_value_set_manually
+                ? (e?.weight as number)
+                : questionsMaxValue;
+
+              return (
+                <li key={e._id + answerMaxValue}>
+                  <ResponseOption
+                    index={i}
+                    register={register}
+                    answers={fields}
+                    watch={watch}
+                    data={e}
+                    child_key={`${child_key}.answers.${i}`}
+                    remove={() => remove(i)}
+                    question_value={max_value}
+                    onUpdateValue={handleUpdateAnswer}
+                    max_value={answerMaxValue}
+                    errors={
+                      (errors as any)?.dimentions?.[dimensionIndex]
+                        ?.questions?.[questionIndex]?.answers?.[i]
+                    }
+                  />
+                </li>
+              );
+            })}
+          </ul>
 
           <button
             type="button"
-            className="remove-button"
-            onClick={handleRemoveQuestion}
+            className="add-new-btn"
+            onClick={handleAddNewAnswer}
           >
-            <AiOutlineClose />
+            Adicionar Resposta
           </button>
         </div>
-      </div>
-
-      <Input
-        label="Pergunta"
-        register={{ ...register(`${child_key}.title`) }}
-        error={
-          (errors as any)?.dimentions?.[dimensionIndex]?.questions?.[
-            questionIndex
-          ]?.title?.message
-        }
-      />
-
-      <div className="response">
-        <ul>
-          {fields.map((e, i) => {
-            const answerMaxValue = e.max_value_set_manually
-              ? (e?.weight as number)
-              : questionsMaxValue;
-
-            return (
-              <li key={e._id + answerMaxValue}>
-                <ResponseOption
-                  index={i}
-                  register={register}
-                  answers={fields}
-                  watch={watch}
-                  data={e}
-                  child_key={`${child_key}.answers.${i}`}
-                  remove={() => remove(i)}
-                  question_value={max_value}
-                  onUpdateValue={handleUpdateAnswer}
-                  max_value={answerMaxValue}
-                  errors={
-                    (errors as any)?.dimentions?.[dimensionIndex]?.questions?.[
-                      questionIndex
-                    ]?.answers?.[i]
-                  }
-                />
-              </li>
-            );
-          })}
-        </ul>
-
-        <button
-          type="button"
-          className="add-new-btn"
-          onClick={handleAddNewAnswer}
-        >
-          Adicionar Resposta
-        </button>
-      </div>
+      </section>
     </MultiSelectContainer>
   );
 };

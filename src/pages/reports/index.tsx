@@ -4,6 +4,7 @@ import {
   answersProps,
   dimensionModel,
   questionInput,
+  rulesModel,
 } from "../../models/quiz.interface";
 import LiderProfileLogo from "../../assets/liderprofile_logo.jpg";
 import { format } from "date-fns";
@@ -18,6 +19,7 @@ interface reportType {
   created_at: Date;
   dimentions: dimensionModel[];
   encrypted_data: string;
+  rules?: rulesModel[];
   originalDimentions: dimensionModel[];
 }
 
@@ -44,6 +46,14 @@ const ReportScreen = () => {
           ...data[0],
           ...JSON.parse(dimentions),
         });
+
+        console.log(
+          {
+            ...data[0],
+            ...JSON.parse(dimentions),
+          },
+          "aaaa"
+        );
       }
     },
     enabled: !!quizID,
@@ -73,16 +83,21 @@ const ReportScreen = () => {
         </div>
       </section>
       <div className="report-header">
-        <h2>Relatório</h2>
-        <h1>{findQuiz?.title}</h1>
+        <div className="left-side">
+          <h2>Relatório</h2>
+          <h1>{findQuiz?.title}</h1>
 
-        <div className="sub-header">
-          <p>
-            Realizado em:{" "}
-            {findQuiz?.created_at &&
-              format(findQuiz?.created_at as Date, "dd/MM/yyyy")}
-          </p>
-          <p>Nota geral: {quizGeralGrade}</p>
+          {findQuiz?.rules?.map((grade, gradeIndex) => (
+            <div className="grade-item" key={gradeIndex}>
+              <span>Sobre a sua nota:</span>
+              <p>{grade.message}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="right-side">
+          <span>Nota</span>
+          <h1>{quizGeralGrade}</h1>
         </div>
       </div>
 
@@ -102,7 +117,7 @@ const ReportScreen = () => {
             <section key={i} className="topic-section">
               <div className="section-header">
                 <div className="left-side">
-                  <h3>Tópico</h3>
+                  <span className="topic-subtitle">Tópico</span>
                   <h2>{e.title}</h2>
                 </div>
 

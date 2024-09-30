@@ -99,6 +99,7 @@ const ElementComponent = ({
         color: getRandomColor(),
         title: "Tópico " + (dimensionFields.length + 1),
       });
+      setOpen(false);
       return;
     }
 
@@ -130,6 +131,7 @@ const ElementComponent = ({
       },
     ]);
     setValue(`dimentions.${i}.calc`, calculationString);
+    setOpen(false);
   };
 
   const handleDragData = (

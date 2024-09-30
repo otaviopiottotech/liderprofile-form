@@ -119,9 +119,13 @@ const Ques = () => {
         </div>
       </Modal>
       <QuestionarioContainer>
-        <div className="header">
-          <h1>{foudQ?.title}</h1>
-        </div>
+        <section className="header-container">
+          <div className="header">
+            <h1>{foudQ?.title}</h1>
+
+            <p>{foudQ?.description}</p>
+          </div>
+        </section>
 
         <form onSubmit={onSubmit}>
           {foudQ &&

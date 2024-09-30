@@ -1,4 +1,5 @@
 import { getDerivedKey } from "./encript";
+import Pako from "pako";
 
 export const decryptWithCTR = async (value: string) => {
   const deriveKey = await getDerivedKey();
@@ -17,5 +18,8 @@ export const decryptWithCTR = async (value: string) => {
     encryptedData
   );
 
-  return new TextDecoder().decode(decryptedChunk);
+  // Decompress the data
+  const decompressedData = Pako.inflate(decryptedChunk, { to: "string" });
+
+  return decompressedData;
 };

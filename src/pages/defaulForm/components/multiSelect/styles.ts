@@ -85,10 +85,20 @@ export const MultiSelectContainer = styled.div<multiSelectorProps>`
     `;
   }}
 
+  .element-content {
+    max-height: 300vh;
+    transition: 0.3s;
+    overflow: hidden;
+  }
+
   ${({ $minimize }) => {
     if ($minimize) {
       return css`
         max-height: 44px;
+
+        .element-content.element-content {
+          max-height: 44px;
+        }
 
         .header {
           .left-side {
@@ -111,6 +121,12 @@ export const MultiSelectContainer = styled.div<multiSelectorProps>`
     }
   }}
 
+  .element-content {
+    max-height: 300vh;
+    transition: 0.3s;
+    overflow: hidden;
+  }
+
   .header {
     display: flex;
     align-items: flex-start;
@@ -121,17 +137,37 @@ export const MultiSelectContainer = styled.div<multiSelectorProps>`
     .left-side {
       display: flex;
       gap: 10px;
-      align-items: flex-start;
+      align-items: center;
 
       .mark {
+        display: flex;
+        gap: 10px;
+        align-items: center;
         background-color: ${({ $color }) => $color};
-        padding: 3px 6px;
+        padding: 6px 8px;
         border-radius: 4px;
 
         p {
           color: white;
           font-size: 12px;
           font-weight: 900;
+        }
+
+        .type-container {
+          display: flex;
+          gap: 4px;
+          align-items: center;
+          border-left: solid white 2px;
+          padding: 0 0 0 10px;
+        }
+
+        svg {
+          color: white;
+        }
+
+        h4 {
+          color: white;
+          ${({ theme }) => theme.font.p.extra_small};
         }
       }
 

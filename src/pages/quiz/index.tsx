@@ -7,11 +7,7 @@ import {
 } from "react-hook-form";
 import QuizSideBar from "./components/sidebar";
 import { QuizContainer } from "./styles";
-import {
-  dimensionModel,
-  questionsType,
-  rulesModel,
-} from "../../models/quiz.interface";
+import { dimensionModel, rulesModel } from "../../models/quiz.interface";
 import FormGroup from "../defaulForm/components/Group";
 import { getRandomColor } from "../../utils/randomColor";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -25,6 +21,7 @@ import { createQuizValidation } from "./validation";
 import QuizHeader from "./components/quizHeader";
 import { elementsOptions } from "./components/elementsSelection";
 import { EmptyQuizContainer } from "../defaulForm/components/Group/styles";
+import Input from "../../components/input";
 
 export function getValueFromPath(obj: any, path: string) {
   const pathArray = path.split(".");
@@ -86,16 +83,14 @@ const QuizScreen = () => {
   const onSubmit = formMethods.handleSubmit(async (data) => {
     const dataToJSON = JSON.stringify(data.dimentions);
 
-    console.log(data);
-
-    return;
     const encrypted_data = await encryptWithCTR(dataToJSON);
 
     const quizData = {
       title: data.title,
+      description: data?.description,
       encrypted_data,
+      rules: data?.rules,
       id: quizID,
-      description: "",
     };
 
     onSaveQuiz(quizData, {
@@ -142,7 +137,7 @@ interface testeC {
 
 const Dimension = ({ formMethods, fieldMethod }: testeC) => {
   const { append, fields, remove } = fieldMethod;
-  const { watch } = formMethods;
+  const { watch, register } = formMethods;
 
   const handleAddNewQuestion = () => {
     const _id = window.crypto.randomUUID();
@@ -157,7 +152,12 @@ const Dimension = ({ formMethods, fieldMethod }: testeC) => {
   return (
     <section className="dimensionsList">
       <div className="header">
-        <h1>{watch("title") as any}</h1>
+        <Input
+          inputStyle="text"
+          inputSize="l"
+          style={{ fontWeight: 600 }}
+          register={{ ...register("title") }}
+        />
       </div>
       <section className="topic-list">
         <FormProvider {...formMethods}>

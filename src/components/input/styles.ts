@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import { inputStyle, inputTheme } from ".";
+import { inputSize, inputStyle, inputTheme } from ".";
 
 const primary = css`
   ${({ theme }) => {
@@ -16,6 +16,17 @@ const secondary = css`
     return css`
       background-color: transparent;
       border: 1px solid ${theme.colors.grayscale.gray_90};
+      ${theme.font.p.normal};
+      color: ${theme.colors.grayscale.gray_60};
+    `;
+  }}
+`;
+const text = css`
+  ${({ theme }) => {
+    return css`
+      background-color: transparent;
+      border: 0;
+      padding: 4px;
       ${theme.font.p.normal};
       color: ${theme.colors.grayscale.gray_60};
     `;
@@ -41,15 +52,8 @@ export const errorStyle = css`
 const styles = {
   primary,
   secondary,
+  text,
 };
-
-interface inputStyleProps {
-  $inputStyle: inputStyle;
-  $inputTheme: inputTheme;
-  $required?: boolean;
-  $disabled?: boolean;
-  $error?: string;
-}
 
 export const inputDark = css`
   ${({ theme }) => {
@@ -75,32 +79,42 @@ const inputThemeStyle = {
   light: inputLight,
 };
 
+const sm_Size = css`
+  input {
+    ${({ theme }) => theme.font.p.extra_small};
+    padding: 0.3em 0.7em;
+  }
+`;
+const normal_Size = css`
+  input {
+    ${({ theme }) => theme.font.p.small};
+    padding: 0.4em 0.8em;
+  }
+`;
+const l_Size = css`
+  input {
+    ${({ theme }) => theme.font.p.large};
+    padding: 0.3em 0.6em;
+  }
+`;
+
+const inputSizes = {
+  sm: sm_Size,
+  normal: normal_Size,
+  l: l_Size,
+};
+
+interface inputStyleProps {
+  $inputStyle: inputStyle;
+  $inputTheme: inputTheme;
+  $inputSize: inputSize;
+  $required?: boolean;
+  $disabled?: boolean;
+  $error?: string;
+}
+
 export const InputContainer = styled.div<inputStyleProps>`
   transition: 0.3s;
-  ${({ $disabled }) => {
-    if ($disabled) {
-      return css`
-        opacity: 0.5;
-
-        input {
-          background-color: ${({ theme }) => theme.colors.grayscale.gray_10};
-        }
-      `;
-    }
-  }}
-
-  ${({ $disabled }) => {
-    if ($disabled) {
-      return css`
-        opacity: 0.5;
-
-        input {
-          background-color: ${({ theme }) => theme.colors.grayscale.gray_10};
-        }
-      `;
-    }
-  }}
-  ${({ $inputTheme }) => inputThemeStyle[$inputTheme]}
 
   input {
     width: 100%;
@@ -155,6 +169,22 @@ export const InputContainer = styled.div<inputStyleProps>`
       }
     }}
   }
+
+  ${({ $disabled }) => {
+    if ($disabled) {
+      return css`
+        opacity: 0.5;
+
+        input {
+          background-color: ${({ theme }) => theme.colors.grayscale.gray_10};
+        }
+      `;
+    }
+  }}
+
+  ${({ $inputTheme }) => inputThemeStyle[$inputTheme]};
+
+  ${({ $inputSize }) => inputSizes[$inputSize]};
 
   ${({ $error }) => $error && errorStyle}
 `;
